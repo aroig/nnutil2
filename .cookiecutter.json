@@ -1,0 +1,13 @@
+{
+    "_copy_without_render": [],
+    "_template": "local:devel-python",
+    "date": "2019-07-02",
+    "email": "abdo.roig@gmail.com",
+    "full_name": "Abd\u00f3 Roig-Maranges",
+    "project_description": "Tensorflow utilities for training neural networks",
+    "project_license": "BSD",
+    "project_name": "nnutil2",
+    "project_slug": "nnutil2",
+    "project_url": "",
+    "version": "0.1"
+}
