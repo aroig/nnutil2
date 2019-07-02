@@ -1,3 +1,8 @@
 coverage
 flake8
-
+tensorboard
+tensorflow-gpu
+tensorflow-probability
+numpy
+pandas
+matplotlib
