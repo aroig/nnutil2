@@ -10,5 +10,5 @@
 # license. See the LICENSE file for details.
 
 
-__version__      = '0.1'
-__description__  = 'Tensorflow utilities for training neural networks'
+__version__ = '0.1'
+__description__ = 'Tensorflow utilities for training neural networks'
