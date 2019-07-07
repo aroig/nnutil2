@@ -55,7 +55,6 @@ COVERAGE     := coverage
 
 # Deployment paths
 PREFIX       := /usr
-MANDIR       := $(PREFIX)/share/man
 DOCDIR       := $(PREFIX)/share/doc/$(NAME)
 ZSHDIR       := $(PREFIX)/share/zsh/site-functions
 BASHDIR      := /etc/bash_completion.d
@@ -141,18 +140,10 @@ clean:
 	make -C man clean
 
 
-.PHONY: man install
-
-man:
-	@make -C man man
+.PHONY: install
 
 install:
 	@$(PYTHON) setup.py install --prefix="$(PREFIX)" --root="$(DESTDIR)"
-#	install -Dm644 "completion/zsh/_$(NAME)" "$(DESTDIR)$(ZSHDIR)/_$(NAME)"
-#	install -Dm644 "completion/bash/$(NAME)" "$(DESTDIR)$(BASHDIR)/$(NAME)"
-	install -d $(DESTDIR)$(MANDIR)/{man1,man5}
-	install -Dm644 man/*.1 "$(DESTDIR)$(MANDIR)/man1/"
-	install -Dm644 man/*.5 "$(DESTDIR)$(MANDIR)/man5/"
 
 
 

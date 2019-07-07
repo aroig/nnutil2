@@ -22,10 +22,5 @@ setup(
     author_email     = 'abdo.roig@gmail.com',
     packages         = find_packages(),
     install_requires = [
-        'Click',
-    ],
-    entry_points     = '''
-    [console_scripts]
-    nnutil2=nnutil2.cli:main
-    ''',
+    ]
 )
