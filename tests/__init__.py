@@ -9,5 +9,6 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+import unittest
 
-from tests.test import *
+from .layers_identity import *

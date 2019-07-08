@@ -9,9 +9,9 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+from tensorflow.python.keras.engine import network
 
-__version__ = '0.1'
-__description__ = 'Tensorflow utilities for training neural networks'
-
-
-from . import layers
+class Network(network.Network):
+    """A collection of layers"""
+    def __init__(self, **kwargs):
+        super(Network, self).__init__(**kwargs)

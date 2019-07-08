@@ -9,9 +9,16 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
-
-__version__ = '0.1'
-__description__ = 'Tensorflow utilities for training neural networks'
+import tensorflow as tf
 
 
-from . import layers
+class Identity(tf.keras.layers.Layer):
+    """Identity layer that outputs the same tensor as input"""
+    def __init__(self, **kwargs):
+        super(Identity, self).__init__(**kwargs)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+    def call(self, inputs):
+        return inputs
