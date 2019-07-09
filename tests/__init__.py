@@ -13,3 +13,4 @@ import unittest
 
 from .layers_identity import *
 from .layers_segment import *
+from .data_merge import *

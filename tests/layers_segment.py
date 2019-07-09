@@ -26,7 +26,7 @@ class LayersSegment(tf.test.TestCase):
     #         input_shape=(2, 3))
 
     def test_layers_segment_2(self):
-        dense = tf.layers.Dense(units=4)
+        dense = tf.keras.layers.Dense(units=4)
         segment = nnu.layers.Segment(layers=[dense])
         x = tf.random.normal(shape=(2, 3), dtype=tf.float32)
         y = segment(x)
