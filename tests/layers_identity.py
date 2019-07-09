@@ -15,8 +15,16 @@ import numpy as np
 import tensorflow as tf
 import nnutil2 as nnu
 
+from tensorflow.python.keras import testing_utils
+
 class LayersIdentity(tf.test.TestCase):
-    def test_layer_identity(self):
+    # def test_layers_identity_1(self):
+    #     testing_utils.layer_test(
+    #         nnu.layers.Identity,
+    #         kwargs={},
+    #         input_shape=(2, 3))
+
+    def test_layer_identity_2(self):
         with self.cached_session() as sess:
             x = tf.random.normal(shape=(2, 3), dtype=tf.float32)
             lay = nnu.layers.Identity()

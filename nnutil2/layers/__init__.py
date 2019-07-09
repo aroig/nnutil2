@@ -11,4 +11,4 @@
 
 
 from .identity import Identity
-from .network import Network
+from .segment import Segment
