@@ -10,3 +10,4 @@
 # license. See the LICENSE file for details.
 
 from .merge import *
+from .parse_json import *

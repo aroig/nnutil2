@@ -15,8 +15,6 @@ import numpy as np
 import tensorflow as tf
 import nnutil2 as nnu
 
-from tensorflow.python.keras import testing_utils
-
 class DataMerge(tf.test.TestCase):
     def test_dataset_merge_1(self):
         tf.random.set_seed(42)
@@ -34,18 +32,12 @@ class DataMerge(tf.test.TestCase):
 
         with self.cached_session() as sess:
             it1 = iter(ds1)
-            feature1 = next(it1)
-            self.assertEqual(set(feature1.keys()), set(['a']))
-
-            self.assertEqual(1, feature1['a'].numpy())
+            feature1 = sess.run(next(it1))
+            self.assertEqual({'a': 1}, feature1)
 
             it = iter(ds)
-            feature = next(it)
-            self.assertEqual(set(feature.keys()), set(['a', 'b', 'c']))
-
-            self.assertEqual(1, feature['a'].numpy())
-            self.assertEqual(2, feature['b'].numpy())
-            self.assertEqual(3, feature['c'].numpy())
+            feature = sess.run(next(it))
+            self.assertEqual({'a': 1, 'b': 2, 'c': 3}, feature)
 
 
 if __name__ == '__main__':
