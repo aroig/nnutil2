@@ -10,3 +10,4 @@
 # license. See the LICENSE file for details.
 
 from .model import *
+from .classification_model import *

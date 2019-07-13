@@ -113,12 +113,8 @@ class Experiment:
 
 _experiment_collection = []
 
-def get_experiment(name):
-    for cls in _experiment_collection:
-        if cls.name == name:
-            return cls
-
-    return None
+def experiments():
+    return _experiment_collection
 
 def register_experiment(cls):
     _experiment_collection.append(cls)
