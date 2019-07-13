@@ -20,7 +20,8 @@ class Train(Command):
     name = "train"
     description = "Train an experiment"
 
-    def __init__(self, model_path, data_path):
+    def __init__(self, model_path, data_path, **kwargs):
+        super(Train, self).__init__(**kwargs)
         self._model_path = model_path
         self._data_path = data_path
 
@@ -36,8 +37,11 @@ class Train(Command):
     def run(self, argv):
         args = self._parser.parse_args(argv)
 
-        exp_cls = train.get_experiment(args.experiment)
-        exp = exp_cls(model_path=self._model_path, data_path=self._data_path)
+        exp_cls = self.get_experiment(args.experiment)
+        exp = exp_cls(
+            model_path=self._model_path,
+            data_path=self._data_path
+        )
 
         with util.Tensorboard(path=self._model_path):
             exp.fit()

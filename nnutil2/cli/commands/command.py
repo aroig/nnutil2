@@ -10,8 +10,19 @@
 # license. See the LICENSE file for details.
 
 class Command:
-    def __init__(self):
-        pass
+    def __init__(self, experiments):
+        self._experiments = experiments
+
+    @property
+    def experiments(self):
+        return self._experiments
+
+    def get_experiment(self, name):
+        for exp in self.experiments:
+            if exp.__name__ == name:
+                return exp
+
+        return None
 
     def run(argv):
         raise NotImplementedError

@@ -15,29 +15,21 @@ from nnutil2 import train
 
 from .command import Command
 
-class PrintDataset(Command):
-    name = "print-dataset"
-    description = "Print samples from the experiment dataset"
+class LsExperiments(Command):
+    name = "ls-experiments"
+    description = "Print list of experiments"
 
     def __init__(self, model_path, data_path, **kwargs):
-        super(PrintDataset, self).__init__(**kwargs)
+        super(LsExperiments, self).__init__(**kwargs)
         self._model_path = model_path
         self._data_path = data_path
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('-e', '--experiment', help='Experiment')
 
         self._parser = parser
 
     def run(self, argv):
         args = self._parser.parse_args(argv)
 
-        exp_cls = self.get_experiment(args.experiment)
-        exp = exp_cls(
-            model_path=self._model_path,
-            data_path=self._data_path
-        )
-
-        dataset = exp.dataset()
-        for x in dataset:
-            print(x)
+        for exp in self.experiments:
+            print(exp.__name__)

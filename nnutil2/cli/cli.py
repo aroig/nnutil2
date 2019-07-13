@@ -16,16 +16,18 @@ from nnutil2 import train
 from . import commands
 
 class Cli:
-    def __init__(self, model_path, data_path, description=""):
+    def __init__(self, model_path, data_path, experiments, description=""):
         self._model_path = model_path
         self._data_path = data_path
+        self._experiments = experiments
 
         self._description = description
 
         self._commands = {
             commands.Train,
             commands.PrintDataset,
-            commands.Evaluate
+            commands.Evaluate,
+            commands.LsExperiments
         }
 
     def run(self, argv):
@@ -41,5 +43,10 @@ class Cli:
         args, rest_argv = parser.parse_known_args(argv)
 
         cmd_cls = commands[args.cmd]
-        cmd = cmd_cls(model_path=self._model_path, data_path=self._data_path)
+        cmd = cmd_cls(
+            model_path=self._model_path,
+            data_path=self._data_path,
+            experiments=self._experiments
+
+        )
         cmd.run(rest_argv)
