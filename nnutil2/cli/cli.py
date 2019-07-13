@@ -41,5 +41,5 @@ class Cli:
         args, rest_argv = parser.parse_known_args(argv)
 
         cmd_cls = commands[args.cmd]
-        cmd = cmd_cls(model_path=self._model_path, data_path=self._data_path, argv)
-        cmd.run()
+        cmd = cmd_cls(model_path=self._model_path, data_path=self._data_path)
+        cmd.run(rest_argv)

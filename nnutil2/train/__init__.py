@@ -11,4 +11,3 @@
 
 from .experiment import *
 from .classification_experiment import *
-from .register_experiment import *

@@ -13,5 +13,5 @@ class Command:
     def __init__(self):
         pass
 
-    def run():
+    def run(argv):
         raise NotImplementedError

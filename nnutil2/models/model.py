@@ -11,11 +11,11 @@
 
 import tensorflow as tf
 
-class Model(tf.keras.model.Model):
+class Model(tf.keras.models.Model):
     def __init__(self, **kwargs):
         super(Model, self).__init__(**kwargs)
 
-    def compile(self, metrics=[] **kwargs):
+    def compile(self, metrics=[], **kwargs):
         metrics = list(metrics) + self.metrics()
         super(Model, self).compile(metrics=metrics, **kwargs)
 

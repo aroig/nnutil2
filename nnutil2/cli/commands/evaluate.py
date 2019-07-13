@@ -11,14 +11,15 @@
 
 import argparse
 import time
+import json
 
 from nnutil2 import util
 from nnutil2 import train
 from .command import Command
 
-class Train(Command):
-    name = "train"
-    description = "Train an experiment"
+class Evaluate(Command):
+    name = "evaluate"
+    description = "Evaluate an experiment"
 
     def __init__(self, model_path, data_path):
         self._model_path = model_path
@@ -26,10 +27,6 @@ class Train(Command):
 
         parser = argparse.ArgumentParser(description=self.description)
         parser.add_argument('-e', '--experiment', help='Experiment')
-
-        parser.add_argument('--resume', action='store_true', help='Resume previous training')
-        parser.add_argument('--tracing', action='store_true', help='Produce tracing data')
-        parser.add_argument('--debug', action='store_true', help='Start debugging session')
 
         self._parser = parser
 
@@ -39,9 +36,5 @@ class Train(Command):
         exp_cls = train.get_experiment(args.experiment)
         exp = exp_cls(model_path=self._model_path, data_path=self._data_path)
 
-        with util.Tensorboard(path=self._model_path):
-            exp.fit()
-
-            print("Training has finished!")
-            while True:
-                time.sleep(10)
+        metrics = exp.evaluate()
+        print(json.dumps(metrics, indent=4, sort_keys=True))

@@ -16,16 +16,19 @@ from nnutil2 import train
 from .command import Command
 
 class PrintDataset(Command):
-    def __init__(self, model_path, data_path, argv):
+    def __init__(self, model_path, data_path):
         self._model_path = model_path
         self._data_path = data_path
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--experiment', help='Experiment')
-        self._args = parser.parse_args(argv)
+        parser.add_argument('-e', '--experiment', help='Experiment')
+
+        self._parser = parser
 
     def run(self, argv):
-        exp_cls = train.get_experiment(self._args.experiment)
+        args = self._parser.parse_args(argv)
+
+        exp_cls = train.get_experiment(args.experiment)
         exp = exp_cls(model_path=self._model_path, data_path=self._data_path)
 
         dataset = exp.dataset()
