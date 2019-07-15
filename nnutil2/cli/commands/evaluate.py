@@ -21,13 +21,13 @@ class Evaluate(Command):
     name = "evaluate"
     description = "Evaluate an experiment"
 
-    def __init__(self, model_path, data_path, **kwargs):
+    def __init__(self, train_path, data_path, **kwargs):
         super(Evaluate, self).__init__(**kwargs)
-        self._model_path = model_path
+        self._train_path = train_path
         self._data_path = data_path
 
         parser = argparse.ArgumentParser(description=self.description)
-        parser.add_argument('-e', '--experiment', help='Experiment')
+        parser.add_argument('-e', '--experiment', help='Experiment', required=True)
 
         self._parser = parser
 
@@ -36,7 +36,7 @@ class Evaluate(Command):
 
         exp_cls = self.get_experiment(args.experiment)
         exp = exp_cls(
-            model_path=self._model_path,
+            train_path=self._train_path,
             data_path=self._data_path
         )
 

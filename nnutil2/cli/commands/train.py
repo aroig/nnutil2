@@ -20,13 +20,13 @@ class Train(Command):
     name = "train"
     description = "Train an experiment"
 
-    def __init__(self, model_path, data_path, **kwargs):
+    def __init__(self, train_path, data_path, **kwargs):
         super(Train, self).__init__(**kwargs)
-        self._model_path = model_path
+        self._train_path = train_path
         self._data_path = data_path
 
         parser = argparse.ArgumentParser(description=self.description)
-        parser.add_argument('-e', '--experiment', help='Experiment')
+        parser.add_argument('-e', '--experiment', help='Experiment', required=True)
 
         parser.add_argument('--resume', action='store_true', help='Resume previous training')
         parser.add_argument('--tracing', action='store_true', help='Produce tracing data')
@@ -39,11 +39,11 @@ class Train(Command):
 
         exp_cls = self.get_experiment(args.experiment)
         exp = exp_cls(
-            model_path=self._model_path,
+            train_path=self._train_path,
             data_path=self._data_path
         )
 
-        with util.Tensorboard(path=self._model_path):
+        with util.Tensorboard(path=self._train_path):
             exp.fit()
 
             print("Training has finished!")

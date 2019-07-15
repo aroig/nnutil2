@@ -19,13 +19,13 @@ class PrintDataset(Command):
     name = "print-dataset"
     description = "Print samples from the experiment dataset"
 
-    def __init__(self, model_path, data_path, **kwargs):
+    def __init__(self, train_path, data_path, **kwargs):
         super(PrintDataset, self).__init__(**kwargs)
-        self._model_path = model_path
+        self._train_path = train_path
         self._data_path = data_path
 
-        parser = argparse.ArgumentParser()
-        parser.add_argument('-e', '--experiment', help='Experiment')
+        parser = argparse.ArgumentParser(description=self.description)
+        parser.add_argument('-e', '--experiment', help='Experiment', required=True)
 
         self._parser = parser
 
@@ -34,10 +34,10 @@ class PrintDataset(Command):
 
         exp_cls = self.get_experiment(args.experiment)
         exp = exp_cls(
-            model_path=self._model_path,
+            train_path=self._train_path,
             data_path=self._data_path
         )
 
-        dataset = exp.dataset()
+        dataset, _ = exp.dataset()
         for x in dataset:
             print(x)

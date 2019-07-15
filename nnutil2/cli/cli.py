@@ -16,8 +16,8 @@ from nnutil2 import train
 from . import commands
 
 class Cli:
-    def __init__(self, model_path, data_path, experiments, description=""):
-        self._model_path = model_path
+    def __init__(self, train_path, data_path, experiments, description=""):
+        self._train_path = train_path
         self._data_path = data_path
         self._experiments = experiments
 
@@ -38,13 +38,13 @@ class Cli:
         commands = {}
         for cmd in self._commands:
             commands[cmd.name] = cmd
-            subparsers.add_parser(cmd.name, help=cmd.description)
+            subparsers.add_parser(cmd.name, help=cmd.description, add_help=False)
 
         args, rest_argv = parser.parse_known_args(argv)
 
         cmd_cls = commands[args.cmd]
         cmd = cmd_cls(
-            model_path=self._model_path,
+            train_path=self._train_path,
             data_path=self._data_path,
             experiments=self._experiments
 
