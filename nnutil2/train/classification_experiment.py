@@ -12,8 +12,15 @@
 from .experiment import Experiment
 
 class ClassificationExperiment(Experiment):
-    def __init__(self, **kwargs):
+    def __init__(self, labels=None, **kwargs):
+        assert labels is not None
+        self._labels = labels
+
         super(ClassificationExperiment, self).__init__(**kwargs)
+
+    @property
+    def labels(self):
+        return self._labels
 
     def fit(self, **kwargs):
         return self.model.fit(**kwargs)

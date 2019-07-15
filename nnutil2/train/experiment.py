@@ -15,17 +15,16 @@ from datetime import datetime
 import tensorflow as tf
 
 class Experiment:
-    def __init__(self, model_path=None, data_path=None, model=None, hyperparameters={}, resume=False, seed=None):
-        assert model_path is not None
+    def __init__(self, train_path=None, data_path=None, model=None, hyperparameters={}, resume=False, seed=None):
         assert model is not None
 
-        self._model_path = None
-        if model_path is not None:
-            self._model_path = os.path.join(os.path.abspath(model_path), self.name)
+        self._train_path = None
+        if train_path is not None:
+            self._train_path = os.path.join(os.path.abspath(train_path), self.name)
 
         self._data_path = None
         if data_path is not None:
-            self._data_path = os.path.join(os.path.abspath(path), self.name)
+            self._data_path = os.path.abspath(data_path)
 
         self._model = model
         self._hyperparameters = hyperparameters
@@ -36,8 +35,11 @@ class Experiment:
         if self._resume:
             self._dirname = self._last_dirname(self._dirname)
 
-        if self.path is not None and not os.path.exists(self.path):
-            os.makedirs(self.path)
+        if self.model_path is not None and not os.path.exists(self.model_path):
+            os.makedirs(self.model_path)
+
+        if self.log_path is not None and not os.path.exists(self.log_path):
+            os.makedirs(self.log_path)
 
         self._seed = seed
 
@@ -59,10 +61,17 @@ class Experiment:
 
     @property
     def model_path(self):
-        if self._model_path is None:
+        if self._train_path is None:
             return None
 
-        return os.path.join(self._model_path, self._dirname)
+        return os.path.join(self._train_path, self._dirname, "model")
+
+    @property
+    def log_path(self):
+        if self._train_path is None:
+            return None
+
+        return os.path.join(self._train_path, self._dirname, "log")
 
     @property
     def data_path(self):
@@ -89,10 +98,10 @@ class Experiment:
         return metrics
 
     def train_callbacks(self):
-        model_path = os.path.join(self.path, "model.hdf5")
+        model_path = os.path.join(self.model_path, "model.hdf5")
 
         callbacks = [
-            tf.keras.callbacks.TensorBoard(log_dir=self._path),
+            tf.keras.callbacks.TensorBoard(log_dir=self.log_path),
             tf.keras.callbacks.ModelCheckpoint(filepath=model_path)
         ]
 
