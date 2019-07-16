@@ -14,10 +14,15 @@ import tensorflow as tf
 from .model import Model
 
 class ClassificationModel(Model):
-    def __init__(self, network=None, **kwargs):
+    def __init__(self, network=None, optimizer=None, loss=None, **kwargs):
         assert network is not None
+        assert optimizer is not None
+        assert loss is not None
+
         super(ClassificationModel, self).__init__(**kwargs)
         self._network = network
+        self._model_optimizer = optimizer
+        self._model_loss = loss
 
     def call(self, inputs, training=False):
         return self._network(inputs, training=training)
@@ -29,8 +34,15 @@ class ClassificationModel(Model):
         })
         return config
 
+    def compile(self, optimizer=None, loss=None, **kwargs):
+        return super(ClassificationModel, self).compile(
+            optimizer=self._model_optimizer,
+            loss=self._model_loss,
+            **kwargs
+        )
+
     def metrics(self):
-        metrics = super(ClassificationModel, self).train_metrics()
+        metrics = super(ClassificationModel, self).metrics()
         metrics.extend([])
         return metrics
 

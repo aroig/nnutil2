@@ -23,19 +23,22 @@ class ClassificationExperiment(Experiment):
         return self._labels
 
     def fit(self, **kwargs):
+        self.model.compile(metrics=self.metrics())
         return self.model.fit(**kwargs)
 
     def evaluate(self, **kwargs):
+        self.model.compile(metrics=self.metrics())
         return self.model.evaluate(**kwargs)
 
     def predict(self, **kwargs):
+        self.model.compile(metrics=[])
         return self.model.predict(**kwargs)
 
     def dataset(self):
         raise NotImplementedError
 
     def metrics(self):
-        metrics = super(ClassificationExperiment, self).train_metrics()
+        metrics = super(ClassificationExperiment, self).metrics()
         metrics.extend([])
         return metrics
 

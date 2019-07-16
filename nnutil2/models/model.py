@@ -17,7 +17,7 @@ class Model(tf.keras.models.Model):
 
     def compile(self, metrics=[], **kwargs):
         metrics = list(metrics) + self.metrics()
-        super(Model, self).compile(metrics=metrics, **kwargs)
+        return super(Model, self).compile(metrics=metrics, **kwargs)
 
     def metrics(self):
         metrics = []
