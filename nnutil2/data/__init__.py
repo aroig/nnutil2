@@ -9,5 +9,7 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+from .image import *
 from .merge import *
 from .parse_json import *
+from .attach_label import *
