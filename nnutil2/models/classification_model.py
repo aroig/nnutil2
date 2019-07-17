@@ -41,8 +41,8 @@ class ClassificationModel(Model):
             **kwargs
         )
 
-    def metrics(self):
-        metrics = super(ClassificationModel, self).metrics()
+    def model_metrics(self):
+        metrics = super(ClassificationModel, self).model_metrics()
         metrics.extend([])
         return metrics
 

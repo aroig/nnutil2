@@ -16,10 +16,10 @@ class Model(tf.keras.models.Model):
         super(Model, self).__init__(**kwargs)
 
     def compile(self, metrics=[], **kwargs):
-        metrics = list(metrics) + self.metrics()
+        metrics = list(metrics) + self.model_metrics()
         return super(Model, self).compile(metrics=metrics, **kwargs)
 
-    def metrics(self):
+    def model_metrics(self):
         metrics = []
         return metrics
 

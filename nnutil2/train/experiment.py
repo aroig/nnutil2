@@ -101,7 +101,9 @@ class Experiment:
         model_path = os.path.join(self.model_path, "model.hdf5")
 
         callbacks = [
-            tf.keras.callbacks.TensorBoard(log_dir=self.log_path),
+            # NOTE: Once https://github.com/tensorflow/tensorboard/issues/2412 is fixed
+            # set back profile_batch=2
+            tf.keras.callbacks.TensorBoard(log_dir=self.log_path, profile_batch=0),
             tf.keras.callbacks.ModelCheckpoint(filepath=model_path)
         ]
 

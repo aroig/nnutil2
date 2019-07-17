@@ -9,6 +9,9 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+
+import tensorflow as tf
+
 from .experiment import Experiment
 
 class ClassificationExperiment(Experiment):
@@ -22,9 +25,20 @@ class ClassificationExperiment(Experiment):
     def labels(self):
         return self._labels
 
-    def fit(self, **kwargs):
+    def fit(self, steps_per_epoch=100, **kwargs):
         self.model.compile(metrics=self.metrics())
-        return self.model.fit(**kwargs)
+
+        batch_size = self.hyperparameters.get('batch_size', 128)
+        epochs = self.hyperparameters.get('epochs', 128)
+
+        train_dataset, eval_dataset = self.dataset()
+
+        return self.model.fit(
+            train_dataset.batch(batch_size),
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            callbacks=self.train_callbacks(),
+            **kwargs)
 
     def evaluate(self, **kwargs):
         self.model.compile(metrics=self.metrics())
@@ -39,7 +53,9 @@ class ClassificationExperiment(Experiment):
 
     def metrics(self):
         metrics = super(ClassificationExperiment, self).metrics()
-        metrics.extend([])
+        metrics.extend([
+            tf.keras.metrics.SparseCategoricalAccuracy()
+        ])
         return metrics
 
     def train_callbacks(self):
