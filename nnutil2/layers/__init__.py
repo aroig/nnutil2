@@ -10,5 +10,6 @@
 # license. See the LICENSE file for details.
 
 
+from .feature import Feature
 from .identity import Identity
 from .segment import Segment
