@@ -39,7 +39,7 @@ class Feature(ks.layers.Layer):
         elif self._axis is not None:
             feature = tf.stack([tf.cast(inputs[k], dtype=dtype) for k in self._features], axis=self._axis)
         else:
-            raise Exception("Cannot prepare feature")
+            raise Exception("Need an axis to concatenate features")
 
         if self._flatten:
             size = reduce(lambda x, y: x * y, feature.shape[1:], 1)
