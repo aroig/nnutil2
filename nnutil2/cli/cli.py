@@ -27,7 +27,8 @@ class Cli:
             commands.Train,
             commands.PrintDataset,
             commands.Evaluate,
-            commands.LsExperiments
+            commands.LsExperiments,
+            commands.Tensorboard
         }
 
     def run(self, argv):

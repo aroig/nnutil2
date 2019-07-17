@@ -9,8 +9,10 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+
 from .command import *
 from .train import *
 from .print_dataset import *
 from .evaluate import *
 from .ls_experiments import *
+from .tensorboard import *
