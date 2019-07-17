@@ -29,7 +29,9 @@ class ClassificationExperiment(Experiment):
         self.model.compile(metrics=self.metrics())
 
         batch_size = self.hyperparameters.get('batch_size', 128)
-        epochs = self.hyperparameters.get('epochs', 128)
+        epochs = self.hyperparameters.get('epochs', 256)
+        train_steps = self.hyperparameters.get('train_steps', 1024)
+        steps_per_epoch = int(train_steps / epochs)
 
         train_dataset, eval_dataset = self.dataset()
 
