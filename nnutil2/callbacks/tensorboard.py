@@ -10,13 +10,10 @@
 # license. See the LICENSE file for details.
 
 
-__version__ = '0.1'
-__description__ = 'Tensorflow utilities for training neural networks'
+import tensorflow as tf
 
-from . import callbacks
-from . import cli
-from . import data
-from . import layers
-from . import models
-from . import train
-from . import util
+class TensorBoard(tf.keras.callbacks.TensorBoard):
+    def __init__(self, **kwargs):
+        super(TensorBoard, self).__init__(**kwargs)
+
+        # TODO: tf.summary.create_file_writer()
