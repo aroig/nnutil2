@@ -9,6 +9,5 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
-from .pr_curve import *
-from .distribution import *
+
 from .confusion_matrix import *

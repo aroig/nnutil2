@@ -32,13 +32,16 @@ def pr_curve(name, predictions, truth, streaming=False):
 
     return summary
 
-def label_pr_curve(name, predictions, labels, label_names=None, streaming=False):
-    if label_names is None:
-        label_names = ['{}'.format(i) for i in range(0, labels.shape[-1])]
+def label_pr_curve(y_pred, y_true, name=None, labels=None, streaming=False):
+    if name is None:
+        name = "pr_curve"
+
+    if labels is None:
+        labels = ['{}'.format(i) for i in range(0, labels.shape[-1])]
 
     summary_list = []
     with tf.name_scope(name):
-        for i, lb in enumerate(label_names):
+        for i, lb in enumerate(labels):
             summary = pr_curve(lb, predictions[:, i], tf.equal(labels, i), streaming=streaming)
             summary_list.append(summary)
 

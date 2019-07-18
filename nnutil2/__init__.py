@@ -17,6 +17,8 @@ from . import callbacks
 from . import cli
 from . import data
 from . import layers
+from . import metrics
 from . import models
+from . import summary
 from . import train
 from . import util
