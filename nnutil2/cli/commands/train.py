@@ -40,7 +40,8 @@ class Train(Command):
         exp_cls = self.get_experiment(args.experiment)
         exp = exp_cls(
             train_path=self._train_path,
-            data_path=self._data_path
+            data_path=self._data_path,
+            resume=args.resume,
         )
 
         with util.Tensorboard(path=self._train_path):
