@@ -11,3 +11,4 @@
 
 
 from .tensorboard import *
+from .classification_tensorboard import *
