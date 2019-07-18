@@ -9,8 +9,16 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+import tensorflow as tf
 
-from .debug import Debug
-from .feature import Feature
-from .identity import Identity
-from .segment import Segment
+
+class Debug(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super(Debug, self).__init__(**kwargs)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape
+
+    def call(self, inputs):
+        print("Debug: shape = {}".format(inputs.shape))
+        return inputs
