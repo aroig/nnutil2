@@ -14,6 +14,8 @@ import tensorflow as tf
 
 from .experiment import Experiment
 
+import nnutil2 as nnu
+
 class ClassificationExperiment(Experiment):
     def __init__(self, labels=None, **kwargs):
         assert labels is not None
@@ -39,6 +41,8 @@ class ClassificationExperiment(Experiment):
             train_dataset.batch(batch_size),
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
+            validation_data=eval_dataset.batch(batch_size),
+            validation_steps=steps_per_epoch,
             callbacks=self.train_callbacks(),
             **kwargs)
 
@@ -56,13 +60,18 @@ class ClassificationExperiment(Experiment):
     def metrics(self):
         metrics = super(ClassificationExperiment, self).metrics()
         metrics.extend([
-            tf.keras.metrics.SparseCategoricalAccuracy()
+            tf.keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
+            nnu.metrics.ConfusionMatrix(name="confusion_matrix", labels=self.labels)
         ])
         return metrics
 
     def train_callbacks(self):
         callbacks = super(ClassificationExperiment, self).train_callbacks()
-        callbacks.extend([])
+        callbacks.extend([
+            # NOTE: Once https://github.com/tensorflow/tensorboard/issues/2412 is fixed
+            # set back profile_batch=2
+            nnu.callbacks.ClassificationTensorBoard(log_dir=self.log_path, profile_batch=0),
+        ])
         return  callbacks
 
     def train_summaries(self):

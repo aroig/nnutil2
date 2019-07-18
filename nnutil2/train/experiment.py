@@ -46,7 +46,7 @@ class Experiment:
     def _last_dirname(self, fallback):
         all_runs = []
 
-        train_dir = self._path
+        train_dir = self._train_path
         if os.path.exists(train_dir):
             all_runs = list(sorted(os.listdir(train_dir)))
 
@@ -93,18 +93,23 @@ class Experiment:
         self.model.compile(metrics=self.metrics())
         return self.model
 
+    def load(self, path):
+        self.model.load_weights(path)
+
+    def save(self, path):
+        self.model.save(path)
+
     def metrics(self):
         metrics = []
         return metrics
 
     def train_callbacks(self):
-        model_path = os.path.join(self.model_path, "model.hdf5")
-
+        model_file = os.path.join(self.model_path, "model.hdf5")
         callbacks = [
-            # NOTE: Once https://github.com/tensorflow/tensorboard/issues/2412 is fixed
-            # set back profile_batch=2
-            tf.keras.callbacks.TensorBoard(log_dir=self.log_path, profile_batch=0),
-            tf.keras.callbacks.ModelCheckpoint(filepath=model_path)
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=model_file,
+                load_weights_on_restart=self._resume
+            )
         ]
 
         return callbacks

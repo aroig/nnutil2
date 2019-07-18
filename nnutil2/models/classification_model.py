@@ -14,15 +14,21 @@ import tensorflow as tf
 from .model import Model
 
 class ClassificationModel(Model):
-    def __init__(self, network=None, optimizer=None, loss=None, **kwargs):
+    def __init__(self, network=None, optimizer=None, loss=None, labels=None, **kwargs):
         assert network is not None
         assert optimizer is not None
         assert loss is not None
+        assert labels is not None
 
         super(ClassificationModel, self).__init__(**kwargs)
         self._network = network
         self._model_optimizer = optimizer
         self._model_loss = loss
+        self._labels = labels
+
+    @property
+    def labels(self):
+        return self._labels
 
     def call(self, inputs, training=False):
         return self._network(inputs, training=training)
