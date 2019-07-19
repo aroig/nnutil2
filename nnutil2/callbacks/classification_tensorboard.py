@@ -13,7 +13,6 @@
 import tensorflow as tf
 
 from .tensorboard import TensorBoard
-
 import nnutil2 as nnu
 
 
@@ -26,16 +25,18 @@ class ClassificationTensorBoard(TensorBoard):
 
         # scalars
         for name in ['accuracy', 'cross_entropy']:
-            name = mode_prefix + name
-            if name in logs:
-                tf.summary.scalar(prefix + name, logs[name], step=step)
+            metric_name = mode_prefix + name
+            if metric_name in logs:
+                value = logs[metric_name]
+                tf.summary.scalar(prefix + name, value, step=step)
 
         # Confusion matrix
         for name in ['confusion_matrix']:
-            name = mode_prefix + name
-            if name in logs:
+            metric_name = mode_prefix + name
+            if metric_name in logs:
+                value = logs[metric_name]
                 nnu.summary.confusion_matrix(
-                    logs[name],
+                    value,
                     step=step,
                     name=prefix + name,
                     labels=self.model.labels)

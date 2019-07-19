@@ -39,9 +39,10 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
     def _common_summaries(self, writer, logs, mode_prefix, prefix, step):
         # scalars
         for name in ['loss']:
-            name = mode_prefix + name
-            if name in logs:
-                tf.summary.scalar(prefix + name, logs[name], step=step)
+            metric_name = mode_prefix + name
+            if metric_name in logs:
+                value = logs[metric_name]
+                tf.summary.scalar(prefix + name, value, step=step)
 
     def _train_summaries(self, writer, logs, prefix, step):
         self._common_summaries(writer, logs, "", prefix, step)
