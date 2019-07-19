@@ -9,6 +9,7 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+
 import os
 from datetime import datetime
 
@@ -21,10 +22,14 @@ class Experiment:
         self._train_path = None
         if train_path is not None:
             self._train_path = os.path.join(os.path.abspath(train_path), self.name)
+            if not os.path.exists(self._train_path):
+                os.makedirs(self._train_path)
 
         self._data_path = None
         if data_path is not None:
             self._data_path = os.path.abspath(data_path)
+            if not os.path.exists(self._data_path):
+                os.makedirs(self._data_path)
 
         self._model = model
         self._hyperparameters = hyperparameters
@@ -93,11 +98,17 @@ class Experiment:
         self.model.compile(metrics=self.metrics())
         return self.model
 
-    def load(self, path):
+    def load(self, path=None):
+        if path is None:
+            path = os.path.join(self.model_path, "model.hdf5")
+
         self.model.load_weights(path)
 
-    def save(self, path):
-        self.model.save(path)
+    def save(self, path=None):
+        if path is None:
+            path = os.path.join(self.model_path, "model.hdf5")
+
+        self.model.save_weights(path)
 
     def metrics(self):
         metrics = []
@@ -105,10 +116,13 @@ class Experiment:
 
     def train_callbacks(self):
         model_file = os.path.join(self.model_path, "model.hdf5")
+
         callbacks = [
+            # NOTE: cannot use load_weights_on_restart because the model is only created upon training.
+            # Before training there is no model to load weights into and the reader fails.
             tf.keras.callbacks.ModelCheckpoint(
                 filepath=model_file,
-                load_weights_on_restart=self._resume
+                load_weights_on_restart=False
             )
         ]
 
