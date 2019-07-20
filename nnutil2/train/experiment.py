@@ -16,7 +16,7 @@ from datetime import datetime
 import tensorflow as tf
 
 class Experiment:
-    def __init__(self, train_path=None, data_path=None, model=None, hyperparameters={}, resume=False, seed=None):
+    def __init__(self, train_path=None, data_path=None, model=None, hparams={}, resume=False, seed=None):
         assert model is not None
 
         self._train_path = None
@@ -31,8 +31,14 @@ class Experiment:
             if not os.path.exists(self._data_path):
                 os.makedirs(self._data_path)
 
+        self._compiled = False
         self._model = model
-        self._hyperparameters = hyperparameters
+
+        assert 'batch_size' in hparams
+        assert 'train_steps' in hparams
+
+        self._hparams = hparams
+        self._validation_steps = 16
 
         self._resume = resume
         self._dirname = datetime.now().strftime('%Y-%m-%d_%H.%M.%S')
@@ -87,16 +93,66 @@ class Experiment:
 
     @property
     def model(self):
+        if not self._compiled:
+            self.model.compile(metrics=self.metrics())
+            self._compiled = True
+
         return self._model
 
     @property
-    def hyperparameters(self):
-        return self._hyperparameters
+    def hparams(self):
+        return self._hparams
 
-    def compiled_model(self):
-        # TODO: if not compiled
-        self.model.compile(metrics=self.metrics())
-        return self.model
+    def eval_dataset(self):
+        return None
+
+    def train_dataset(self):
+        return None
+
+    def fit(self, epochs=128, **kwargs):
+        batch_size = self.hparams.get('batch_size', 128)
+        train_steps = self.hparams.get('train_steps', 1024)
+
+        steps_per_epoch = int(train_steps / epochs)
+        validation_steps = int(steps_per_epoch / 2)
+
+        train_dataset = self.train_dataset()
+        if train_dataset is not None:
+            train_dataset = train_dataset.batch(batch_size)
+
+        eval_dataset = self.eval_dataset()
+        if eval_dataset is not None:
+            eval_dataset = eval_dataset.batch(batch_size)
+
+        # NOTE: we need to run the model in order for it to be created and do the load
+        if self._resume and train_dataset is not None:
+            self.model.predict(x=self.train_dataset().take(1))
+            self.load()
+
+        return self.model.fit(
+            x=train_dataset,
+            epochs=epochs,
+            steps_per_epoch=steps_per_epoch,
+            validation_data=eval_dataset,
+            validation_steps=self._validation_steps,
+            callbacks=self.train_callbacks(),
+            **kwargs)
+
+    def evaluate(self, **kwargs):
+        batch_size = self.hparams.get('batch_size', 128)
+
+        eval_dataset = self.eval_dataset()
+        if eval_dataset is not None:
+            eval_dataset = eval_dataset.batch(batch_size)
+
+        return self.model.evaluate(
+            eval_dataset,
+            steps=self._validation_steps,
+            callbacks=self.eval_callbacks(),
+            **kwargs)
+
+    def predict(self, x, **kwargs):
+        return self.model.predict(x, **kwargs)
 
     def load(self, path=None):
         if path is None:
@@ -128,17 +184,9 @@ class Experiment:
 
         return callbacks
 
-    def train_summaries(self):
-        summaries = []
-        return summaries
-
     def eval_callbacks(self):
         callbacks = []
         return callbacks
-
-    def eval_summaries(self):
-        summaries = []
-        return summaries
 
 
 _experiment_collection = []

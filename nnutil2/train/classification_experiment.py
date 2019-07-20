@@ -27,42 +27,6 @@ class ClassificationExperiment(Experiment):
     def labels(self):
         return self._labels
 
-    def fit(self, steps_per_epoch=100, **kwargs):
-        self.model.compile(metrics=self.metrics())
-
-        batch_size = self.hyperparameters.get('batch_size', 128)
-        epochs = self.hyperparameters.get('epochs', 256)
-        train_steps = self.hyperparameters.get('train_steps', 1024)
-
-        steps_per_epoch = int(train_steps / epochs)
-
-        train_dataset, eval_dataset = self.dataset()
-
-        # NOTE: we need to run the model in order for it to be created and do the load
-        if self._resume:
-            self.model.predict(x=train_dataset.take(1))
-            self.load()
-
-        return self.model.fit(
-            train_dataset.batch(batch_size),
-            epochs=epochs,
-            steps_per_epoch=steps_per_epoch,
-            validation_data=eval_dataset.batch(batch_size),
-            validation_steps=int(steps_per_epoch / 2),
-            callbacks=self.train_callbacks(),
-            **kwargs)
-
-    def evaluate(self, **kwargs):
-        self.model.compile(metrics=self.metrics())
-        return self.model.evaluate(**kwargs)
-
-    def predict(self, **kwargs):
-        self.model.compile(metrics=[])
-        return self.model.predict(**kwargs)
-
-    def dataset(self):
-        raise NotImplementedError
-
     def metrics(self):
         metrics = super(ClassificationExperiment, self).metrics()
         metrics.extend([
@@ -80,17 +44,7 @@ class ClassificationExperiment(Experiment):
         ])
         return  callbacks
 
-    def train_summaries(self):
-        summaries = super(ClassificationExperiment, self).train_summaries()
-        summaries.extend([])
-        return summaries
-
     def eval_callbacks(self):
         callbacks = super(ClassificationExperiment, self).eval_callbacks()
         callbacks.extend([])
         return  callbacks
-
-    def eval_summaries(self):
-        summaries = super(ClassificationExperiment, self).eval_summaries()
-        summaries.extend([])
-        return summaries
