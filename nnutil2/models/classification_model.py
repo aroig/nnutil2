@@ -36,9 +36,14 @@ class ClassificationModel(Model):
     def get_config(self):
         config = super(ClassificationModel, self).get_config()
         config.update({
-            'network': self._network.get_config()
+            'network': self._network.get_config(),
+            'optimizer': self._optimizer.get_config(),
+            'loss': self._loss.get_config(),
+            'labels': self._labels
         })
         return config
+
+    # TODO: implement from_config
 
     def compile(self, optimizer=None, loss=None, **kwargs):
         return super(ClassificationModel, self).compile(
@@ -57,17 +62,7 @@ class ClassificationModel(Model):
         callbacks.extend([])
         return callbacks
 
-    def train_summaries(self):
-        summaries = super(ClassificationModel, self).train_summaries()
-        summaries.extend([])
-        return summaries
-
     def eval_callbacks(self):
         callbacks = super(ClassificationModel, self).eval_callbacks()
         callbacks.extend([])
         return callbacks
-
-    def eval_summaries(self):
-        summaries = super(ClassificationModel, self).eval_summaries()
-        summaries.extend([])
-        return summaries

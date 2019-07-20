@@ -27,14 +27,6 @@ class Model(tf.keras.models.Model):
         callbacks = []
         return callbacks
 
-    def train_summaries(self):
-        summaries = []
-        return summaries
-
     def eval_callbacks(self):
         callbacks = []
         return callbacks
-
-    def eval_summaries(self):
-        summaries = []
-        return summaries
