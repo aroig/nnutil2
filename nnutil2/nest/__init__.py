@@ -9,17 +9,5 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
-
-__version__ = '0.1'
-__description__ = 'Tensorflow utilities for training neural networks'
-
-from . import callbacks
-from . import cli
-from . import data
-from . import layers
-from . import metrics
-from . import models
-from . import summary
-from . import train
-from . import util
-from . import nest
+from .getter import *
+from .make_spec import *

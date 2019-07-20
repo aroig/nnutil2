@@ -9,17 +9,13 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+def getter(key):
+    """Create a getter for a nested structure, given either a key string, or a lambda"""
+    if type(key) == str:
+        return lambda x: x[key]
 
-__version__ = '0.1'
-__description__ = 'Tensorflow utilities for training neural networks'
+    elif hasattr(key, "__call__"):
+        return lambda x: key(nested)
 
-from . import callbacks
-from . import cli
-from . import data
-from . import layers
-from . import metrics
-from . import models
-from . import summary
-from . import train
-from . import util
-from . import nest
+    else:
+        raise Exception("Cannot access nested structure member")
