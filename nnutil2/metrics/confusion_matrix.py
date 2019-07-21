@@ -48,8 +48,6 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
         confusion = tf.cast(confusion, dtype=self._dtype)
         update_op = self._confusion_matrix.assign_add(confusion)
 
-        # nnu.summary.confusion_matrix(update_op, name="confusion_matrix", labels=self._labels)
-
         return update_op
 
     def result(self):
@@ -68,41 +66,3 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
             'labels': self._labels
         })
         return config
-
-
-
-"""
-
-class ConfusionMatrix(Metric):
-    def __init__(self, nlabels, name=None, dtype=None):
-        super(ConfusionMatrix, self).__init__(name=name, dtype=dtype)
-
-        self._nlabels = nlabels
-        self.confusion_matrix = self.add_weight(
-            'confusion_matrix',
-            shape=(nlabels, nlabels),
-            initializer=ks.initializers.Zeros)
-
-    def update_state(self, y_true, y_pred, sample_weight=None):
-        y_true = tf.convert_to_tensor(y_true)
-        y_pred = tf.convert_to_tensor(y_pred)
-        y_pred.shape.assert_is_compatible_with(y_true.shape)
-
-        # TODO: handle sample_weight
-
-        # TODO: This is not right yet. check docs of confusion_matrix
-
-        cm = tf.math.confusion_matrix(y_true, y_pred)
-        update_op = tf.assign_add(self.confusion_matrix, cm)
-        return update_op
-
-    def result(self):
-        total = tf.math.reduce_sum(self.confusion_matrix, axis=(0, 1))
-        result = tf.math.div_no_nan(self.confusion_matrix, total)
-        return result
-
-    def reset_states(self):
-        for v in self.variables:
-            ks.backend.set_value(v, np.zeros((self._nlabels, self._nlabels)))
-
-"""
