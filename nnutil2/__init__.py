@@ -23,3 +23,5 @@ from . import summary
 from . import train
 from . import util
 from . import nest
+from . import image
+from . import visualization
