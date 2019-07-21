@@ -31,8 +31,13 @@ class ClassificationExperiment(Experiment):
         metrics = super(ClassificationExperiment, self).metrics()
         metrics.extend([
             tf.keras.metrics.SparseCategoricalAccuracy(name='accuracy'),
-            nnu.metrics.ConfusionMatrix(name="confusion_matrix", labels=self.labels)
+            nnu.metrics.ConfusionMatrix(name="confusion_matrix", labels=self.labels),
         ])
+
+        for i, lb in enumerate(self._labels):
+            pr_curve = nnu.metrics.PRCurve(label=i, name="pr_curve/{}".format(lb))
+            metrics.append(pr_curve)
+
         return metrics
 
     def train_callbacks(self):

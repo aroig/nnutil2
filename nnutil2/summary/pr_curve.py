@@ -12,39 +12,48 @@
 import tensorflow as tf
 import tensorboard as tb
 
-def pr_curve(name, predictions, truth, streaming=False):
-    num_threshold = 200
+def pr_curve(data, name="pr_curve", step=None, description=None):
+    data = tf.cast(data, dtype=tf.float32)
 
-    if streaming:
-        summary, update_op = tb.summary.pr_curve_streaming_op(
-            name,
-            predictions=predictions,
-            labels=tf.cast(truth, tf.bool),
-            num_thresholds=num_threshold,
-            metrics_collections=[tf.GraphKeys.SUMMARIES],
-            updates_collections=[tf.GraphKeys.UPDATE_OPS])
-    else:
-        summary = tb.summary.pr_curve_streaming_op(
-            name,
-            predictions=predictions,
-            labels=tf.cast(truth, tf.bool),
-            num_thresholds=num_threshold)
+    num_thresholds = data.shape[-1]
+    tf.debugging.assert_shapes({
+        data: (2, 2, num_thresholds)
+    })
 
-    return summary
+    summary_metadata = tb.plugins.pr_curve.metadata.create_summary_metadata(
+        display_name=name,
+        description=description,
+        num_thresholds=num_thresholds
+    )
 
-def label_pr_curve(y_pred, y_true, name=None, labels=None, streaming=False):
-    if name is None:
-        name = "pr_curve"
+    with tf.summary.experimental.summary_scope(name, 'pr_curve', values=[data, step]) as (tag, _):
+        true_pos = tf.cast(data[1, 1, :], dtype=tf.float32)
+        false_pos = tf.cast(data[0, 1, :], dtype=tf.float32)
 
-    if labels is None:
-        labels = ['{}'.format(i) for i in range(0, labels.shape[-1])]
+        true_neg = tf.cast(data[0, 0, :], dtype=tf.float32)
+        false_neg = tf.cast(data[1, 0, :], dtype=tf.float32)
 
-    summary_list = []
-    with tf.name_scope(name):
-        for i, lb in enumerate(labels):
-            summary = pr_curve(lb, predictions[:, i], tf.equal(labels, i), streaming=streaming)
-            summary_list.append(summary)
+        epsilon = tf.keras.backend.epsilon()
 
-        merged_summary = tf.summary.merge(summary_list)
+        precision = tf.math.divide_no_nan(true_pos + epsilon, true_pos + false_pos + epsilon)
+        recall = tf.math.divide_no_nan(true_pos + epsilon, true_pos + false_neg + epsilon)
 
-    return merged_summary
+        # TODO: once tensorboard moves pr_curve to TF 2.0, we should use that instead.
+
+        # Store values within a tensor. We store them in the order:
+        # true positives, false positives, true negatives, false
+        # negatives, precision, and recall.
+        combined_data = tf.stack([
+            tf.cast(true_pos, tf.float32),
+            tf.cast(false_pos, tf.float32),
+            tf.cast(true_neg, tf.float32),
+            tf.cast(false_neg, tf.float32),
+            tf.cast(precision, tf.float32),
+            tf.cast(recall, tf.float32)
+        ], axis=0)
+
+        return tf.summary.write(
+            tag=tag,
+            tensor=combined_data,
+            step=step,
+            metadata=summary_metadata)

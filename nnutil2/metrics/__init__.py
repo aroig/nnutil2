@@ -11,3 +11,4 @@
 
 
 from .confusion_matrix import *
+from .pr_curve import *

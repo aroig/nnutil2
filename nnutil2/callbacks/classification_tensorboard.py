@@ -24,7 +24,7 @@ class ClassificationTensorBoard(TensorBoard):
     def _common_summaries(self, writer, logs, mode_prefix, prefix, step):
         super(ClassificationTensorBoard, self)._common_summaries(writer, logs, mode_prefix, prefix, step)
 
-        # scalars
+        # Scalars
         for name in ['accuracy', 'cross_entropy']:
             metric_name = mode_prefix + name
             if metric_name in logs:
@@ -42,14 +42,24 @@ class ClassificationTensorBoard(TensorBoard):
                     name=prefix + name,
                     labels=self.model.labels)
 
-        # TODO: need to get per-epoch y_pred and y_true
-        # for i, lb in enumerate(self._labels):
-        #     nnu.summary.pr_curve(lb, y_pred[:, i], tf.equal(y_true, i))
-
-        # TODO: save hyperparameters
-
     def _train_summaries(self, writer, logs, prefix, step):
-        self._common_summaries(writer, logs, "", prefix, step)
+        mode_prefix = ""
+        self._common_summaries(writer, logs, mode_prefix, prefix, step)
 
     def _eval_summaries(self, writer, logs, prefix, step):
-        self._common_summaries(writer, logs, "val_", prefix, step)
+        mode_prefix = "val_"
+        self._common_summaries(writer, logs, mode_prefix, prefix, step)
+
+        # PR Curves
+        for name in ['pr_curve']:
+            for lb in self.model.labels:
+                full_name = "{}/{}".format(name, lb)
+                metric_name = mode_prefix + full_name
+
+                if metric_name in logs:
+                    value = logs[metric_name]
+                    nnu.summary.pr_curve(
+                        value,
+                        step=step,
+                        name=prefix + full_name
+                    )

@@ -15,9 +15,6 @@ import tensorflow.keras as ks
 
 from tensorflow.python.keras.metrics import Metric
 
-from tensorflow.python.keras.utils import metrics_utils
-from tensorflow.python.ops.losses import util as tf_losses_utils
-
 import nnutil2 as nnu
 
 
@@ -51,7 +48,8 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
         return update_op
 
     def result(self):
-        total = tf.math.reduce_sum(self._confusion_matrix, axis=(0, 1))
+        # normalize so that max entry s 1
+        total = tf.math.reduce_max(self._confusion_matrix, axis=(0, 1))
         result = tf.math.divide_no_nan(self._confusion_matrix, total)
 
         return result
