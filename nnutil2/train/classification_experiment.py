@@ -43,12 +43,13 @@ class ClassificationExperiment(Experiment):
     def train_callbacks(self):
         callbacks = super(ClassificationExperiment, self).train_callbacks()
         callbacks.extend([
-            # NOTE: Once https://github.com/tensorflow/tensorboard/issues/2412 is fixed
-            # set back profile_batch=2
+            # NOTE: profile_batch requires cupti properly set up. On ubuntu 18.04
+            # sudo bash -c "echo /usr/local/cuda-10.0/extras/CUPTI/lib64 > /etc/ld.so.conf.d/cupti-10-0.conf"
+            # sudo ldconfig
             nnu.callbacks.ClassificationTensorBoard(
                 run_id=self.run_id,
                 log_dir=self.log_path,
-                profile_batch=0
+                profile_batch=2
             ),
         ])
         return  callbacks
