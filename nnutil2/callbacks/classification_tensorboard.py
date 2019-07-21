@@ -29,7 +29,7 @@ class ClassificationTensorBoard(TensorBoard):
             metric_name = mode_prefix + name
             if metric_name in logs:
                 value = logs[metric_name]
-                tf.summary.scalar(prefix + name, value, step=step)
+                tf.summary.scalar(name, value, step=step)
 
         # Confusion matrix
         for name in ['confusion_matrix']:
@@ -39,7 +39,7 @@ class ClassificationTensorBoard(TensorBoard):
                 nnu.summary.confusion_matrix(
                     value,
                     step=step,
-                    name=prefix + name,
+                    name=name,
                     labels=self.model.labels)
 
     def _train_summaries(self, writer, logs, prefix, step):
@@ -61,5 +61,5 @@ class ClassificationTensorBoard(TensorBoard):
                     nnu.summary.pr_curve(
                         value,
                         step=step,
-                        name=prefix + full_name
+                        name=full_name
                     )
