@@ -58,7 +58,7 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
         with eval_writer.as_default():
             hp.hparams_config(
                 hparams=[hp.HParam(k) for k, v in self.model.hparams.items()],
-                metrics=[hp.Metric("accuracy")],
+                metrics=[hp.Metric("accuracy"), hp.Metric("f1_score")],
             )
 
         return super(TensorBoard, self).on_train_begin(logs=logs)

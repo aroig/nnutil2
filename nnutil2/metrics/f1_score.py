@@ -18,14 +18,14 @@ from tensorflow.python.keras.metrics import Metric
 import nnutil2 as nnu
 
 
-class ConfusionMatrix(tf.keras.metrics.Metric):
-    def __init__(self, name="confusion_matrix", nlabels=None, dtype=tf.float32):
-        super(ConfusionMatrix, self).__init__(name=name, dtype=dtype)
+class F1Score(tf.keras.metrics.Metric):
+    def __init__(self, name="f1_score", nlabels=None, dtype=tf.float32):
+        super(F1Score, self).__init__(name=name, dtype=dtype)
 
         assert nlabels is not None
 
         self._nlabels = nlabels
-        self._shape = (self._nlabels, self._nlabels)
+        self._shape = (nlabels, nlabels)
 
         self._confusion_matrix = self.add_weight(
             'confusion_matrix',
@@ -48,9 +48,15 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
         return update_op
 
     def result(self):
-        # normalize so that max entry s 1
-        total = tf.math.reduce_max(self._confusion_matrix, axis=(0, 1))
-        result = tf.math.divide_no_nan(self._confusion_matrix, total)
+        epsilon = tf.keras.backend.epsilon()
+        precision = tf.math.divide_no_nan(tf.linalg.diag_part(self._confusion_matrix) + epsilon,
+                                          tf.reduce_sum(self._confusion_matrix, axis=0) + epsilon)
+
+        recall = tf.math.divide_no_nan(tf.linalg.diag_part(self._confusion_matrix) + epsilon,
+                                          tf.reduce_sum(self._confusion_matrix, axis=1) + epsilon)
+
+        per_class_f1 = tf.math.divide_no_nan(2 * precision * recall, (precision + recall))
+        result = tf.reduce_mean(per_class_f1)
 
         return result
 
@@ -59,7 +65,7 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
             v.assign(tf.zeros(shape=self._shape))
 
     def get_config(self):
-        config = super(ConfusionMatrix, self).get_config()
+        config = super(F1Score, self).get_config()
         config.extend({
             'nlabels': self._nlabels
         })

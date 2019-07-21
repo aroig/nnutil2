@@ -31,7 +31,8 @@ class ClassificationExperiment(Experiment):
         metrics = super(ClassificationExperiment, self).metrics()
         metrics.extend([
             tf.keras.metrics.SparseCategoricalAccuracy(name='accuracy'),
-            nnu.metrics.ConfusionMatrix(name="confusion_matrix", labels=self.labels),
+            nnu.metrics.ConfusionMatrix(name="confusion_matrix", nlabels=len(self.labels)),
+            nnu.metrics.F1Score(name="f1_score", nlabels=len(self.labels))
         ])
 
         for i, lb in enumerate(self._labels):

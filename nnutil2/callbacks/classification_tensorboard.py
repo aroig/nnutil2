@@ -25,7 +25,7 @@ class ClassificationTensorBoard(TensorBoard):
         super(ClassificationTensorBoard, self)._common_summaries(writer, logs, mode_prefix, prefix, step)
 
         # Scalars
-        for name in ['accuracy', 'cross_entropy']:
+        for name in ['accuracy', 'cross_entropy', 'f1_score']:
             metric_name = mode_prefix + name
             if metric_name in logs:
                 value = logs[metric_name]

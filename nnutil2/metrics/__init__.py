@@ -12,3 +12,4 @@
 
 from .confusion_matrix import *
 from .pr_curve import *
+from .f1_score import *
