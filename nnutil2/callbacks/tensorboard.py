@@ -11,9 +11,12 @@
 
 
 import tensorflow as tf
+from tensorboard.plugins.hparams import api as hp
 
 class TensorBoard(tf.keras.callbacks.TensorBoard):
-    def __init__(self, **kwargs):
+    def __init__(self, run_id=None, **kwargs):
+        self._run_id = run_id
+
         super(TensorBoard, self).__init__(**kwargs)
 
     def _log_metrics(self, logs, prefix, step):
@@ -49,3 +52,21 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
 
     def _eval_summaries(self, writer, logs, prefix, step):
         self._common_summaries(writer, logs, "val_", prefix, step)
+
+    def on_test_begin(self, logs=None):
+        eval_writer = self._get_writer(self._validation_run_name)
+        with eval_writer.as_default():
+            hp.hparams_config(
+                hparams=[hp.HParam(k) for k, v in self.model.hparams.items()],
+                metrics=[hp.Metric("epoch_accuracy")],
+            )
+
+        return super(TensorBoard, self).on_train_begin(logs=logs)
+
+    def on_test_end(self, logs=None):
+        eval_writer = self._get_writer(self._validation_run_name)
+        with eval_writer.as_default():
+            # TODO: add trial_id=self._run_id after tb 1.14
+            hp.hparams(hparams=self.model.hparams)
+
+        return super(TensorBoard, self).on_train_end(logs=logs)

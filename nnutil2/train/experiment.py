@@ -71,6 +71,10 @@ class Experiment:
         return self.__class__.__name__
 
     @property
+    def run_id(self):
+        return "{}/{}".format(self.name, self._dirname)
+
+    @property
     def model_path(self):
         if self._train_path is None:
             return None
@@ -94,7 +98,7 @@ class Experiment:
     @property
     def model(self):
         if not self._compiled:
-            self.model.compile(metrics=self.metrics())
+            self._model.compile(metrics=self.metrics())
             self._compiled = True
 
         return self._model
@@ -130,7 +134,7 @@ class Experiment:
             self.load()
 
         return self.model.fit(
-            x=train_dataset,
+            train_dataset,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
             validation_data=eval_dataset,
@@ -179,7 +183,7 @@ class Experiment:
             tf.keras.callbacks.ModelCheckpoint(
                 filepath=model_file,
                 load_weights_on_restart=False
-            )
+            ),
         ]
 
         return callbacks
