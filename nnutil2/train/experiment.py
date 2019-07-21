@@ -140,6 +140,7 @@ class Experiment:
             validation_data=eval_dataset,
             validation_steps=self._validation_steps,
             callbacks=self.train_callbacks(),
+            verbose=0,
             **kwargs)
 
     def evaluate(self, **kwargs):
