@@ -45,7 +45,7 @@ def plot_confusion_matrix(cm, labels, name=None, cmap=plt.cm.Blues):
     thresh = cm.max() / 2.
     for i in range(cm.shape[0]):
         for j in range(cm.shape[1]):
-            ax.text(j, i, format(cm[i, j], ".3f"),
+            ax.text(j, i, format(cm[i, j], ".2f"),
                     ha="center", va="center",
                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
