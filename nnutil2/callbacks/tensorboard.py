@@ -45,7 +45,7 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
             metric_name = mode_prefix + name
             if metric_name in logs:
                 value = logs[metric_name]
-                tf.summary.scalar(prefix + name, value, step=step)
+                tf.summary.scalar(name, value, step=step)
 
     def _train_summaries(self, writer, logs, prefix, step):
         self._common_summaries(writer, logs, "", prefix, step)
@@ -58,7 +58,7 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
         with eval_writer.as_default():
             hp.hparams_config(
                 hparams=[hp.HParam(k) for k, v in self.model.hparams.items()],
-                metrics=[hp.Metric("epoch_accuracy")],
+                metrics=[hp.Metric("accuracy")],
             )
 
         return super(TensorBoard, self).on_train_begin(logs=logs)
