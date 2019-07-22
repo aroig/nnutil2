@@ -15,8 +15,6 @@ import tensorflow.keras as ks
 
 from tensorflow.python.keras.metrics import Metric
 
-import nnutil2 as nnu
-
 
 class F1Score(tf.keras.metrics.Metric):
     def __init__(self, name="f1_score", nlabels=None, dtype=tf.float32):

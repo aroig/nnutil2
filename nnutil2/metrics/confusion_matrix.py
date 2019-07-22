@@ -15,8 +15,6 @@ import tensorflow.keras as ks
 
 from tensorflow.python.keras.metrics import Metric
 
-import nnutil2 as nnu
-
 
 class ConfusionMatrix(tf.keras.metrics.Metric):
     def __init__(self, name="confusion_matrix", nlabels=None, dtype=tf.float32):

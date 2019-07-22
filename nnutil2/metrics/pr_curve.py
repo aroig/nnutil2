@@ -16,8 +16,6 @@ import tensorflow.keras as ks
 from tensorflow.python.keras.metrics import Metric
 from tensorflow.python.keras.utils import metrics_utils
 
-import nnutil2 as nnu
-
 
 class PRCurve(tf.keras.metrics.Metric):
     def __init__(self, name="pr_curves", label=None, num_thresholds=64, dtype=tf.float32):
