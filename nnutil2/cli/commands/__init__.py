@@ -16,3 +16,4 @@ from .print_dataset import *
 from .evaluate import *
 from .ls_experiments import *
 from .tensorboard import *
+from .dataset_stats import *
