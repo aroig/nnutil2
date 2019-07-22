@@ -42,14 +42,6 @@ class ClassificationTensorBoard(TensorBoard):
                     name=name,
                     labels=self.model.labels)
 
-    def _train_summaries(self, writer, logs, prefix, step):
-        mode_prefix = ""
-        self._common_summaries(writer, logs, mode_prefix, prefix, step)
-
-    def _eval_summaries(self, writer, logs, prefix, step):
-        mode_prefix = "val_"
-        self._common_summaries(writer, logs, mode_prefix, prefix, step)
-
         # PR Curves
         for name in ['pr_curve']:
             for lb in self.model.labels:
@@ -63,3 +55,11 @@ class ClassificationTensorBoard(TensorBoard):
                         step=step,
                         name=full_name
                     )
+
+    def _train_summaries(self, writer, logs, prefix, step):
+        mode_prefix = ""
+        self._common_summaries(writer, logs, mode_prefix, prefix, step)
+
+    def _eval_summaries(self, writer, logs, prefix, step):
+        mode_prefix = "val_"
+        self._common_summaries(writer, logs, mode_prefix, prefix, step)
