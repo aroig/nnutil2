@@ -16,7 +16,8 @@ from datetime import datetime
 import tensorflow as tf
 
 class Experiment:
-    def __init__(self, train_path=None, data_path=None, model=None, hparams={}, resume=False, seed=None):
+    def __init__(self, train_path=None, data_path=None, model=None, hparams={},
+                 validation_steps=None, resume=False, seed=None):
         assert model is not None
 
         self._train_path = None
@@ -38,7 +39,10 @@ class Experiment:
         assert 'train_steps' in hparams
 
         self._hparams = hparams
-        self._validation_steps = 16
+
+        if validation_steps is None:
+            validation_steps = 8
+        self._validation_steps = validation_steps
 
         self._resume = resume
         self._dirname = datetime.now().strftime('%Y-%m-%d_%H.%M.%S')
