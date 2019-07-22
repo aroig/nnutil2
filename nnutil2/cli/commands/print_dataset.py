@@ -38,6 +38,6 @@ class PrintDataset(Command):
             data_path=self._data_path
         )
 
-        dataset, _ = exp.dataset()
+        dataset = exp.train_dataset()
         for x in dataset:
             print(x)
