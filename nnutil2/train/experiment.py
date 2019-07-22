@@ -111,10 +111,10 @@ class Experiment:
     def hparams(self):
         return self._hparams
 
-    def eval_dataset(self):
+    def eval_dataset(self, repeat=False):
         return None
 
-    def train_dataset(self):
+    def train_dataset(self, repeat=False):
         return None
 
     def fit(self, epochs=128, **kwargs):
@@ -124,17 +124,17 @@ class Experiment:
         steps_per_epoch = int(train_steps / epochs)
         validation_steps = int(steps_per_epoch / 2)
 
-        train_dataset = self.train_dataset()
+        train_dataset = self.train_dataset(repeat=True)
         if train_dataset is not None:
             train_dataset = train_dataset.batch(batch_size)
 
-        eval_dataset = self.eval_dataset()
+        eval_dataset = self.eval_dataset(repeat=True)
         if eval_dataset is not None:
             eval_dataset = eval_dataset.batch(batch_size)
 
         # NOTE: we need to run the model in order for it to be created and do the load
         if self._resume and train_dataset is not None:
-            self.model.predict(x=self.train_dataset().take(1))
+            self.model.predict(x=train_dataset.take(1))
             self.load()
 
         return self.model.fit(
@@ -174,6 +174,9 @@ class Experiment:
             path = os.path.join(self.model_path, "model.hdf5")
 
         self.model.save_weights(path)
+
+    def dataset_stats(self):
+        raise NotImplementedError
 
     def metrics(self):
         metrics = []

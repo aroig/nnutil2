@@ -59,3 +59,23 @@ class ClassificationExperiment(Experiment):
         callbacks = super(ClassificationExperiment, self).eval_callbacks()
         callbacks.extend([])
         return  callbacks
+
+    def dataset_stats(self):
+        labels = self.labels
+
+        train_dataset = self.train_dataset(repeat=False)
+        train_counts = { lb: 0 for lb in self.labels}
+        for x in train_dataset:
+            lb = labels[x[1].numpy()]
+            train_counts[lb] += 1
+
+        eval_dataset = self.eval_dataset(repeat=False)
+        eval_counts = { lb: 0 for lb in self.labels}
+        for x in eval_dataset:
+            lb = labels[x[1].numpy()]
+            eval_counts[lb] += 1
+
+        return {
+            "train_counts": train_counts,
+            "eval_counts": eval_counts
+        }
