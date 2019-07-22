@@ -117,7 +117,7 @@ class Experiment:
     def train_dataset(self, repeat=False):
         return None
 
-    def fit(self, epochs=128, **kwargs):
+    def fit(self, epochs=64, **kwargs):
         batch_size = self.hparams.get('batch_size', 128)
         train_steps = self.hparams.get('train_steps', 1024)
 
