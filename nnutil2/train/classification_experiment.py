@@ -36,7 +36,7 @@ class ClassificationExperiment(Experiment):
         ])
 
         for i, lb in enumerate(self._labels):
-            pr_curve = nnu.metrics.PRCurve(label=i, name="pr_curve/{}".format(lb))
+            pr_curve = nnu.metrics.PRCurve(label=i, from_logits=True, name="pr_curve/{}".format(lb))
             metrics.append(pr_curve)
 
         return metrics

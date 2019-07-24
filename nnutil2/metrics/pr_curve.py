@@ -18,13 +18,14 @@ from tensorflow.python.keras.utils import metrics_utils
 
 
 class PRCurve(tf.keras.metrics.Metric):
-    def __init__(self, name="pr_curves", label=None, num_thresholds=64, dtype=tf.float32):
+    def __init__(self, name="pr_curves", label=None, num_thresholds=64, from_logits=True, dtype=tf.float32):
         super(PRCurve, self).__init__(name=name, dtype=dtype)
 
         assert label is not None
 
         self._label = label
         self._num_thresholds = num_thresholds
+        self._from_logits = from_logits
 
         self._thresholds = [float(i / (self._num_thresholds-1)) for i in range(0, self._num_thresholds)]
 
@@ -53,6 +54,9 @@ class PRCurve(tf.keras.metrics.Metric):
             dtype=self.dtype)
 
     def update_state(self, y_true, y_pred, sample_weight=None):
+        if self._from_logits:
+            y_pred = tf.keras.activations.softmax(y_pred)
+
         y_pred = y_pred[:, self._label]
 
         y_true = tf.equal(self._label, tf.cast(y_true, dtype=tf.int32))
@@ -76,7 +80,7 @@ class PRCurve(tf.keras.metrics.Metric):
 
     def get_config(self):
         config = super(PRCurve, self).get_config()
-        config.extend({
+        config.update({
             'label': self._label,
             'num_thresholds': self._num_thresholds
         })

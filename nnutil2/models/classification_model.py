@@ -9,7 +9,9 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+
 import tensorflow as tf
+import numpy as np
 
 from .model import Model
 
@@ -32,6 +34,12 @@ class ClassificationModel(Model):
 
     def call(self, inputs, training=False):
         return self._network(inputs, training=training)
+
+    def predict(self, **kwargs):
+        res = super(ClassificationModel, self).predict(**kwargs)
+        res_exp = np.exp(res)
+        probs = res_exp / np.sum(res_exp, axis=-1)
+        return probs
 
     def get_config(self):
         config = super(ClassificationModel, self).get_config()
