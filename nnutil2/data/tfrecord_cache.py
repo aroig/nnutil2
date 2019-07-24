@@ -27,16 +27,9 @@ class TFRecordCache(tf.data.Dataset):
     """
 
     def __init__(self, dataset, path):
-        if self.needs_rebuild(path):
+        if self._needs_rebuild(path):
             print("Preparing tfrecord: {}".format(path))
-
-            if not os.path.exists(os.path.dirname(path)):
-                os.makedirs(os.path.dirname(path))
-
-            writer = tf.io.TFRecordWriter(path)
-            for x in dataset:
-                example = self.serialize_example(x)
-                writer.write(example)
+            nnu.io.write_tfrecord(dataset, path)
 
         self._tensor_spec = nnu.nest.as_tensor_spec(dataset._element_structure)
 
@@ -54,9 +47,5 @@ class TFRecordCache(tf.data.Dataset):
     def _element_structure(self):
         return tf.data.experimental.NestedStructure(self._tensor_spec)
 
-    def serialize_example(self, x):
-        example = tf.train.Example(features=sml.nest.as_feature(x))
-        return example.SerializeToString()
-
-    def needs_rebuild(self, path):
+    def _needs_rebuild(self, path):
         return not os.path.exists(path)

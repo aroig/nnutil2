@@ -15,18 +15,23 @@ import os
 import numpy as np
 import tensorflow as tf
 
+import nnutil2 as nnu
+
 class TFRecord(tf.data.Dataset):
-    def __init__(self, path=None, tensor_spec=None):
-        assert path is not None
+    def __init__(self, paths=None, tensor_spec=None):
+        assert paths is not None
         assert tensor_spec is not None
 
         self._tensor_spec = tensor_spec
 
-        if not os.path.exists(path):
-            raise Exception("tfrecord file does not exist: {}".format(path))
+        path_list = nnu.io.list_file_path(paths, "\\.tfrecord$")
 
-        tfrecord_dataset = tf.data.TFRecordDataset(path)
-        self._dataset = tfrecord_dataset.map(self.parse_example)
+        for p in path_list:
+            if not os.path.exists(p):
+                raise Exception("tfrecord file does not exist: {}".format(p))
+
+        tfrecord_dataset = tf.data.TFRecordDataset(path_list)
+        self._dataset = tfrecord_dataset.map(self._parse_example)
 
         super(TFRecord, self).__init__(self._dataset._variant_tensor)
 
@@ -37,24 +42,8 @@ class TFRecord(tf.data.Dataset):
     def _element_structure(self):
         return tf.data.experimental.NestedStructure(self._tensor_spec)
 
-    def parse_spec(self, tensor_spec):
-        if type(tensor_spec) == dict:
-            return {k: self.parse_spec(v) for k, v in tensor_spec.items()}
-
-        elif type(tensor_spec) == tf.TensorSpec:
-            return tf.io.FixedLenFeature(tensor_spec.shape, tensor_spec.dtype)
-
-        elif type(tensor_spec) == tf.io.FixedLenFeature:
-            return tensor_spec
-
-        elif type(tensor_spec) == tf.io.VarLenFeature:
-            return tensor_spec
-
-        else:
-            raise Exception("Unhandled input spec: {}".format(type(tensor_spec)))
-
-    def parse_example(self, example_proto):
-        parse_spec = self.parse_spec(self._tensor_spec)
-        parsed_features = tf.io.parse_single_example(example_proto, parse_spec)
+    def _parse_example(self, example_proto):
+        feature_spec = nnu.nest.as_feature_spec(self._tensor_spec)
+        parsed_features = tf.io.parse_single_example(example_proto, feature_spec)
 
         return parsed_features
