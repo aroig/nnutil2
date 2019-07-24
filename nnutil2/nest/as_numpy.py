@@ -23,7 +23,7 @@ def as_numpy(structure):
     elif isinstance(structure, np.ndarray):
         return structure
 
-    elif type(structure) in set([int, float, str]):
+    elif type(structure) in set([int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]):
         dtype = tf.dtype.as_dtype(type(structure)).as_numpy_dtype()
         return tf.array(structure, shape=(), dtype=dtype)
 

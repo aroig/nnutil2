@@ -15,3 +15,4 @@ from .as_tensor_spec import *
 from .as_numpy import *
 from .as_tensor import *
 from .as_feature import *
+from .as_feature_spec import *

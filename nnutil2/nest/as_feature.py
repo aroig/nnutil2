@@ -32,10 +32,10 @@ def as_feature(structure):
         else:
             raise Exception("Unhandled array type: {}".format(structure.dtype))
 
-    elif type(structure) == bytes:
+    elif type(structure) in set([bytes]):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[structure]))
 
-    elif type(structure) == str:
+    elif type(structure) in set([str]):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[structure.encode()]))
 
     elif type(structure) in set([float, np.float32, np.float64]):

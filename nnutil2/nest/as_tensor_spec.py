@@ -26,7 +26,7 @@ def as_tensor_spec(structure):
     elif isinstance(structure, np.ndarray):
         return tf.TensorSpec(shape=structure.shape, dtype=structure.dtype)
 
-    elif type(structure) in set([int, float, str]):
+    elif type(structure) in set([int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]):
         return tf.TensorSpec(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
     elif isinstance(structure, tf.data.experimental.NestedStructure):
