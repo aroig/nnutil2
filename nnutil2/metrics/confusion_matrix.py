@@ -58,7 +58,7 @@ class ConfusionMatrix(tf.keras.metrics.Metric):
 
     def get_config(self):
         config = super(ConfusionMatrix, self).get_config()
-        config.extend({
+        config.update({
             'nlabels': self._nlabels
         })
         return config
