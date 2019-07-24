@@ -15,6 +15,8 @@ from datetime import datetime
 
 import tensorflow as tf
 
+import nnutil2 as nnu
+
 class Experiment:
     def __init__(self, train_path=None, data_path=None, model=None, hparams={},
                  validation_steps=None, resume=False, seed=None):
@@ -100,12 +102,28 @@ class Experiment:
         return self._data_path
 
     @property
+    def export_path(self):
+        if self._train_path is None:
+            return None
+
+        return os.path.join(self._train_path, self._dirname, "export")
+
+    @property
     def model(self):
         if not self._compiled:
             self._model.compile(metrics=self.metrics())
             self._compiled = True
 
         return self._model
+
+    @property
+    def input_signature(self):
+        train_dataset = self.train_dataset(repeat=True)
+
+        if train_dataset is not None:
+            return nnu.nest.as_tensor_spec(train_dataset._element_structure)
+
+        return None
 
     @property
     def hparams(self):
@@ -122,7 +140,6 @@ class Experiment:
         train_steps = self.hparams.get('train_steps', 1024)
 
         steps_per_epoch = int(train_steps / epochs)
-        validation_steps = int(steps_per_epoch / 2)
 
         train_dataset = self.train_dataset(repeat=True)
         if train_dataset is not None:
@@ -133,8 +150,7 @@ class Experiment:
             eval_dataset = eval_dataset.batch(batch_size)
 
         # NOTE: we need to run the model in order for it to be created and do the load
-        if self._resume and train_dataset is not None:
-            self.model.predict(x=train_dataset.take(1))
+        if self._resume:
             self.load()
 
         return self.model.fit(
@@ -167,6 +183,7 @@ class Experiment:
         if path is None:
             path = os.path.join(self.model_path, "model.hdf5")
 
+        self.model._set_inputs(nnu.nest.as_tensor_spec(self.input_signature), training=False)
         self.model.load_weights(path)
 
     def save(self, path=None):
@@ -174,6 +191,19 @@ class Experiment:
             path = os.path.join(self.model_path, "model.hdf5")
 
         self.model.save_weights(path)
+
+    def export(self, path=None):
+        if path is None:
+            path = self.export_path
+
+        self.model._set_inputs(nnu.nest.as_tensor_spec(self.input_signature), training=False)
+
+        tf.keras.experimental.export_saved_model(
+            self.model,
+            path,
+            input_signature=[self.input_signature],
+            serving_only=True,
+        )
 
     def dataset_stats(self):
         raise NotImplementedError
