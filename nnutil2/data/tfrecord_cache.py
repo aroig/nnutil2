@@ -15,8 +15,17 @@ import os
 import numpy as np
 import tensorflow as tf
 
+import nnutil2 as nnu
+
+from .tfrecord import TFRecord
 
 class TFRecordCache(tf.data.Dataset):
+    """ Cache dataset into a tfrecord file.
+
+        If the tfrecord file exists, it does not consume the original dataset, otherwise it
+        regenerates the tfrecord transparently.
+    """
+
     def __init__(self, dataset, path):
         if self.needs_rebuild(path):
             print("Preparing tfrecord: {}".format(path))
@@ -29,13 +38,12 @@ class TFRecordCache(tf.data.Dataset):
                 example = self.serialize_example(x)
                 writer.write(example)
 
-        self._tensor_spec = dataset._element_structure._nested_structure
+        self._tensor_spec = nnu.nest.as_tensor_spec(dataset._element_structure)
 
         if not os.path.exists(path):
             raise Exception("tfrecord file does not exist: {}".format(path))
 
-        tfrecord_dataset = tf.data.TFRecordDataset(path)
-        self._dataset = tfrecord_dataset.map(self.parse_example)
+        self._dataset = TFRecord(path=path, tensor_spec=self._tensor_spec)
 
         super(TFRecordCache, self).__init__(self._dataset._variant_tensor)
 
@@ -47,61 +55,8 @@ class TFRecordCache(tf.data.Dataset):
         return tf.data.experimental.NestedStructure(self._tensor_spec)
 
     def serialize_example(self, x):
-        example = tf.train.Example(features=self.make_feature(x))
+        example = tf.train.Example(features=sml.nest.as_feature(x))
         return example.SerializeToString()
-
-    def make_feature(self, feature):
-         if type(feature) == dict:
-             return tf.train.Features(feature={k: self.make_feature(v) for k, v in feature.items()})
-
-         elif type(feature) == bytes:
-             return tf.train.Feature(bytes_list=tf.train.BytesList(value=[feature]))
-
-         elif type(feature) in set([float, np.float32, np.float64]):
-             return tf.train.Feature(float_list=tf.train.FloatList(value=[feature]))
-
-         elif type(feature) in set([int, np.int32, np.int64]):
-             return tf.train.Feature(int64_list=tf.train.Int64List(value=[feature]))
-
-         elif type(feature) in set([np.array, np.ndarray]):
-             flat = feature.flatten().tolist()
-
-             if feature.dtype == int or feature.dtype == np.int32 or feature.dtype == np.int64:
-                 return tf.train.Feature(int64_list=tf.train.Int64List(value=flat))
-
-             elif feature.dtype == float or feature.dtype == np.float32 or feature.dtype == np.float64:
-                 return tf.train.Feature(float_list=tf.train.FloatList(value=flat))
-
-             else:
-                 raise Exception("Unhandled array type: {}".format(feature.dtype))
-
-         elif type(feature) in set([type(tf.constant(0))]):
-             return self.make_feature(feature.numpy())
-
-         else:
-             raise Exception("Unhandled feature type: {}".format(type(feature)))
-
-    def parse_spec(self, tensor_spec):
-        if type(tensor_spec) == dict:
-            return {k: self.parse_spec(v) for k, v in tensor_spec.items()}
-
-        elif type(tensor_spec) == tf.TensorSpec:
-            return tf.io.FixedLenFeature(tensor_spec.shape, tensor_spec.dtype)
-
-        elif type(tensor_spec) == tf.io.FixedLenFeature:
-            return tensor_spec
-
-        elif type(tensor_spec) == tf.io.VarLenFeature:
-            return tensor_spec
-
-        else:
-            raise Exception("Unhandled input spec: {}".format(type(tensor_spec)))
-
-    def parse_example(self, example_proto):
-        parse_spec = self.parse_spec(self._tensor_spec)
-        parsed_features = tf.io.parse_single_example(example_proto, parse_spec)
-
-        return parsed_features
 
     def needs_rebuild(self, path):
         return not os.path.exists(path)
