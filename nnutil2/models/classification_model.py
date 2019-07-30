@@ -17,12 +17,13 @@ from .model import Model
 
 class ClassificationModel(Model):
     def __init__(self, network=None, optimizer=None, loss=None, labels=None, **kwargs):
+        super(ClassificationModel, self).__init__(**kwargs)
+
         assert network is not None
         assert optimizer is not None
         assert loss is not None
         assert labels is not None
 
-        super(ClassificationModel, self).__init__(**kwargs)
         self._network = network
         self._model_optimizer = optimizer
         self._model_loss = loss

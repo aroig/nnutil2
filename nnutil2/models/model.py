@@ -13,9 +13,10 @@ import tensorflow as tf
 
 class Model(tf.keras.models.Model):
     def __init__(self, hparams=None, **kwargs):
+        super(Model, self).__init__(**kwargs)
+
         assert hparams is not None
         self._hparams = hparams
-        super(Model, self).__init__(**kwargs)
 
     @property
     def hparams(self):
