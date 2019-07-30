@@ -154,7 +154,7 @@ class Experiment:
             self.load()
 
         return self.model.fit(
-            train_dataset,
+            x=train_dataset,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
             validation_data=eval_dataset,
