@@ -25,7 +25,7 @@ def list_file_paths(path, regex=None):
             return [path]
 
     elif isinstance(path, list):
-        return [p for q in path, for p in list_file_paths(q, regex=regex)]
+        return [p for q in path for p in list_file_paths(q, regex=regex)]
 
     else:
         raise Exception("Cannot handle path type: {}".format(type(path)))

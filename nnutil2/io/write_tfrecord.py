@@ -17,11 +17,14 @@ import tensorflow as tf
 import nnutil2 as nnu
 
 def write_tfrecord(dataset, path):
+    """ Writes a dataset into a tfrecord file
+    """
     if not os.path.exists(os.path.dirname(path)):
         os.makedirs(os.path.dirname(path))
 
     writer = tf.io.TFRecordWriter(path)
     for x in dataset:
-        example = tf.train.Example(features=nnu.nest.as_feature(x))
+        features = tf.train.Features(feature=nnu.nest.as_feature(x))
+        example = tf.train.Example(features=features)
         example = example.SerializeToString()
         writer.write(example)
