@@ -23,25 +23,25 @@ def as_feature(structure):
     elif isinstance(structure, np.ndarray):
         flat = structure.flatten().tolist()
 
-        if structure.dtype in set([int, np.int32, np.int64]):
+        if any([structure.dtype == dt for dt in [int, np.int32, np.int64]]):
             return tf.train.Feature(int64_list=tf.train.Int64List(value=flat))
 
-        elif structure.dtype in set([float, np.float32, np.float64]):
+        elif any([structure.dtype == dt for dt in [float, np.float32, np.float64]]):
             return tf.train.Feature(float_list=tf.train.FloatList(value=flat))
 
         else:
             raise Exception("Unhandled array type: {}".format(structure.dtype))
 
-    elif type(structure) in set([bytes]):
+    elif isinstance(structure, bytes):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[structure]))
 
-    elif type(structure) in set([str]):
+    elif isinstance(structure, str):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[structure.encode()]))
 
-    elif type(structure) in set([float, np.float32, np.float64]):
+    elif any([isinstance(structure, c) for c in [float, np.float32, np.float64]]):
         return tf.train.Feature(float_list=tf.train.FloatList(value=[structure]))
 
-    elif type(structure) in set([int, np.int32, np.int64]):
+    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64]]):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[structure]))
 
     elif isinstance(structure, tf.data.experimental.NestedStructure):

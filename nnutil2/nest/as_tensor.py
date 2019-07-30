@@ -23,7 +23,7 @@ def as_tensor(structure):
     elif isinstance(structure, np.ndarray):
         return tf.constant(structure, shape=structure.shape, dtype=tf.dtype.as_dtype(structure.dtype))
 
-    elif type(structure) in set([int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]):
+    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
         return tf.constant(structure, shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
     elif isinstance(structure, tf.data.experimental.NestedStructure):

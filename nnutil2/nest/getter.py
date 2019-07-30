@@ -12,7 +12,7 @@
 
 def getter(key):
     """Create a getter for a nested structure, given either a key string, or a lambda"""
-    if type(key) == str:
+    if isinstance(key, str):
         return lambda x: x[key]
 
     elif hasattr(key, "__call__"):

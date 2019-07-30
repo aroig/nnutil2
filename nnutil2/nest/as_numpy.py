@@ -23,9 +23,9 @@ def as_numpy(structure):
     elif isinstance(structure, np.ndarray):
         return structure
 
-    elif type(structure) in set([int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]):
+    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
         dtype = tf.dtype.as_dtype(type(structure)).as_numpy_dtype()
-        return tf.array(structure, shape=(), dtype=dtype)
+        return np.array(structure, shape=(), dtype=dtype)
 
     elif isinstance(structure, tf.data.experimental.NestedStructure):
         return tf.nest.map_structure(as_numpy, structure._nested_structure)

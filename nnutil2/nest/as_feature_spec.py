@@ -30,13 +30,13 @@ def as_feature_spec(structure):
     elif isinstance(structure, tf.TensorSpec):
         return tf.io.FixedLenFeature(shape=structure.shape, dtype=structure.dtype)
 
-    elif type(structure) in set([tf.io.FixedLenFeature, tf.io.FixedLenSequenceFeature, tf.io.VarLenFeature]):
+    elif any([isinstance(structure, c) for c in [tf.io.FixedLenFeature, tf.io.FixedLenSequenceFeature, tf.io.VarLenFeature]]):
         return structure
 
     elif isinstance(structure, np.ndarray):
         return tf.io.FixedLenFeature(shape=structure.shape, dtype=tf.dtype.as_dtype(structure.dtype))
 
-    elif type(structure) in set([int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]):
+    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
         return tf.io.FixedLenFeature(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
     elif isinstance(structure, tf.data.experimental.NestedStructure):
