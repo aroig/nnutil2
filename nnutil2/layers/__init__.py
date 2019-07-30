@@ -14,3 +14,4 @@ from .debug import Debug
 from .feature import Feature
 from .identity import Identity
 from .segment import Segment
+from .random_normal import RandomNormal
