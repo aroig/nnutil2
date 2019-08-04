@@ -10,3 +10,4 @@
 # license. See the LICENSE file for details.
 
 from .tensorboard import *
+from .shape import *
