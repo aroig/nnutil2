@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# nnutil2 - tensorflow utilities for training neural networks
-# copyright (c) 2019, abdó roig-maranges <abdo.roig@gmail.com>
+# nnutil2 - Tensorflow utilities for training neural networks
+# Copyright (c) 2019, Abdó Roig-Maranges <abdo.roig@gmail.com>
 #
-# this file is part of 'nnutil2'.
+# This file is part of 'nnutil2'.
 #
-# this file may be modified and distributed under the terms of the 3-clause bsd
-# license. see the license file for details.
+# This file may be modified and distributed under the terms of the 3-clause BSD
+# license. See the LICENSE file for details.
 
 
 def getter(key):
     """Create a getter for a nested structure, given either a key string, or a lambda"""
-    if isinstance(key, str):
+    if type(key) == str:
         return lambda x: x[key]
 
     elif hasattr(key, "__call__"):
