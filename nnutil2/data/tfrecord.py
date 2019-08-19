@@ -24,7 +24,7 @@ class TFRecord(tf.data.Dataset):
 
         self._tensor_spec = tensor_spec
 
-        path_list = nnu.io.list_file_path(paths, "\\.tfrecord$")
+        path_list = nnu.io.list_file_paths(paths, "\\.tfrecord$")
 
         for p in path_list:
             if not os.path.exists(p):
@@ -40,7 +40,7 @@ class TFRecord(tf.data.Dataset):
 
     @property
     def _element_structure(self):
-        return tf.data.experimental.NestedStructure(self._tensor_spec)
+        return self._dataset._element_structure
 
     def _parse_example(self, example_proto):
         feature_spec = nnu.nest.as_feature_spec(self._tensor_spec)

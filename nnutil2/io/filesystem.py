@@ -13,16 +13,22 @@
 import os
 import re
 
-def list_file_paths(path, regex=None):
+def list_file_paths(path, regex=None, maxdepth=1):
+    """List file paths below path that match the given regular expression"""
     if isinstance(path, str):
         if os.path.isdir(path):
-            return list_file_paths(os.listdir(path), regex=regex)
+            if maxdepth > 0:
+                return list_file_paths(os.listdir(path), regex=regex, maxdepth=maxdepth-1)
+            else:
+                return []
 
         elif os.path.exists(path):
-            if regex is not None:
-                if not re.search(path, regex):
-                    return []
-            return [path]
+            if regex is not None and not re.search(regex, path):
+                return []
+            else:
+                return [path]
+        else:
+            raise Exception("Path does not exist: {}".format(path))
 
     elif isinstance(path, list):
         return [p for q in path for p in list_file_paths(q, regex=regex)]

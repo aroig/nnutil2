@@ -36,7 +36,7 @@ class TFRecordCache(tf.data.Dataset):
         if not os.path.exists(path):
             raise Exception("tfrecord file does not exist: {}".format(path))
 
-        self._dataset = TFRecord(path=path, tensor_spec=self._tensor_spec)
+        self._dataset = TFRecord(paths=path, tensor_spec=self._tensor_spec)
 
         super(TFRecordCache, self).__init__(self._dataset._variant_tensor)
 
