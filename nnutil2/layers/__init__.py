@@ -10,6 +10,7 @@
 # license. See the LICENSE file for details.
 
 
+from .layer import Layer
 from .debug import Debug
 from .feature import Feature
 from .identity import Identity

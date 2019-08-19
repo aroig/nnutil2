@@ -11,8 +11,9 @@
 
 import tensorflow as tf
 
+from .layer import Layer
 
-class Debug(tf.keras.layers.Layer):
+class Debug(Layer):
     def __init__(self, **kwargs):
         super(Debug, self).__init__(**kwargs)
 

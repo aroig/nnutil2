@@ -13,7 +13,9 @@
 import tensorflow as tf
 import tensorflow.keras as ks
 
-class RandomNormal(ks.layers.Layer):
+from .layer import Layer
+
+class RandomNormal(Layer):
     def __init__(self, shape=None, mean=0.0, stddev=1.0):
         assert shape is not None
         self._shape = shape

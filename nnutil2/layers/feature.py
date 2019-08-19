@@ -15,9 +15,11 @@ from functools import reduce
 import tensorflow as tf
 import tensorflow.keras as ks
 
-class Feature(ks.layers.Layer):
+from .layer import Layer
+
+class Feature(Layer):
     def __init__(self, features, axis=None, flatten=False):
-        super().__init__()
+        super(Feature, self).__init__()
 
         self._axis = axis
         if self._axis is not None and self._axis >= 0:

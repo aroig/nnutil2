@@ -11,8 +11,9 @@
 
 import tensorflow as tf
 
+from .layer import Layer
 
-class Identity(tf.keras.layers.Layer):
+class Identity(Layer):
     """Identity layer that outputs the same tensor as input"""
     def __init__(self, **kwargs):
         super(Identity, self).__init__(**kwargs)
