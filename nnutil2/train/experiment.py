@@ -17,9 +17,19 @@ import tensorflow as tf
 
 import nnutil2 as nnu
 
+_experiment_collection = []
+
+def experiments():
+    return _experiment_collection
+
+def register_experiment(cls):
+    if cls not in _experiment_collection:
+        _experiment_collection.append(cls)
+
+    return cls
+
 class Experiment:
-    def __init__(self, train_path=None, data_path=None, model=None, hparams={},
-                 validation_steps=None, resume=False, seed=None):
+    def __init__(self, train_path=None, data_path=None, model=None, hparams={}, validation_steps=None, resume=False, seed=None):
         assert model is not None
 
         self._train_path = None
@@ -59,6 +69,10 @@ class Experiment:
             os.makedirs(self.log_path)
 
         self._seed = seed
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        register_experiment(cls)
 
     def _last_dirname(self, fallback):
         all_runs = []
@@ -135,7 +149,7 @@ class Experiment:
     def train_dataset(self, repeat=False):
         return None
 
-    def fit(self, epochs=64, **kwargs):
+    def fit(self, epochs=32, **kwargs):
         batch_size = self.hparams.get('batch_size', 128)
         train_steps = self.hparams.get('train_steps', 1024)
 
@@ -154,13 +168,13 @@ class Experiment:
             self.load()
 
         return self.model.fit(
-            x=train_dataset,
+            train_dataset,
             epochs=epochs,
             steps_per_epoch=steps_per_epoch,
             validation_data=eval_dataset,
             validation_steps=self._validation_steps,
             callbacks=self.train_callbacks(),
-            verbose=0,
+            verbose=1,
             **kwargs)
 
     def evaluate(self, **kwargs):
@@ -183,7 +197,9 @@ class Experiment:
         if path is None:
             path = os.path.join(self.model_path, "model.hdf5")
 
-        self.model._set_inputs(nnu.nest.as_tensor_spec(self.input_signature), training=False)
+        if not self.model.inputs:
+            self.model._set_inputs(nnu.nest.as_tensor_spec(self.input_signature), training=False)
+
         self.model.load_weights(path)
 
     def save(self, path=None):
@@ -196,9 +212,10 @@ class Experiment:
         if path is None:
             path = self.export_path
 
-        self.model._set_inputs(nnu.nest.as_tensor_spec(self.input_signature), training=False)
+        if not self.model.inputs:
+            self.model._set_inputs(nnu.nest.as_tensor_spec(self.input_signature), training=False)
 
-        tf.keras.experimental.export_saved_model(
+        nnu.models.export_saved_model(
             self.model,
             path,
             input_signature=[self.input_signature],
@@ -229,13 +246,3 @@ class Experiment:
     def eval_callbacks(self):
         callbacks = []
         return callbacks
-
-
-_experiment_collection = []
-
-def experiments():
-    return _experiment_collection
-
-def register_experiment(cls):
-    _experiment_collection.append(cls)
-    return cls

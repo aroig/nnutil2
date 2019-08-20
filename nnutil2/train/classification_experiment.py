@@ -16,6 +16,7 @@ from .experiment import Experiment
 
 import nnutil2 as nnu
 
+
 class ClassificationExperiment(Experiment):
     def __init__(self, labels=None, **kwargs):
         assert labels is not None
@@ -26,6 +27,15 @@ class ClassificationExperiment(Experiment):
     @property
     def labels(self):
         return self._labels
+
+    @property
+    def input_signature(self):
+        train_dataset = self.train_dataset(repeat=True)
+
+        if train_dataset is not None:
+            return nnu.nest.as_tensor_spec(train_dataset._element_structure)[0]
+
+        return None
 
     def metrics(self):
         metrics = super(ClassificationExperiment, self).metrics()
