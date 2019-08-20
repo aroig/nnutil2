@@ -17,13 +17,12 @@ from .model import Model
 
 class ClassificationModel(Model):
     def __init__(self, network=None, optimizer=None, loss=None, labels=None, **kwargs):
-        super(ClassificationModel, self).__init__(**kwargs)
-
         assert network is not None
         assert optimizer is not None
         assert loss is not None
         assert labels is not None
 
+        super(ClassificationModel, self).__init__(**kwargs)
         self._network = network
         self._model_optimizer = optimizer
         self._model_loss = loss
@@ -39,7 +38,7 @@ class ClassificationModel(Model):
     def predict(self, **kwargs):
         res = super(ClassificationModel, self).predict(**kwargs)
         res_exp = np.exp(res)
-        probs = res_exp / np.sum(res_exp, axis=-1)
+        probs = res_exp / np.sum(res_exp, axis=-1, keepdims=True)
         return probs
 
     def get_config(self):
@@ -52,7 +51,8 @@ class ClassificationModel(Model):
         })
         return config
 
-    # TODO: implement from_config
+    def from_config(config):
+        return ClassificationModel(**config)
 
     def compile(self, optimizer=None, loss=None, **kwargs):
         return super(ClassificationModel, self).compile(
