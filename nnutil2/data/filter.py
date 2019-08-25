@@ -33,5 +33,5 @@ class Filter(tf.data.Dataset):
         return list(self._input_datasets)
 
     @property
-    def _element_structure(self):
-        return self._dataset._element_structure
+    def element_spec(self):
+        return self._dataset.element_spec

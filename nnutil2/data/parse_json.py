@@ -25,11 +25,11 @@ class ParseJson(tf.data.Dataset):
         self._input_datasets = [dataset]
         self._tensor_spec = tensor_spec
 
-        self._flat_shapes = [spec.shape for spec in tf.nest.flatten(self._tensor_spec)]
-        self._input_shapes = tf.nest.pack_sequence_as(self._tensor_spec, self._flat_shapes)
+        self._json_flat_shapes = [spec.shape for spec in tf.nest.flatten(self._tensor_spec)]
+        self._input_shapes = tf.nest.pack_sequence_as(self._tensor_spec, self._json_flat_shapes)
 
-        self._flat_types = [spec.dtype for spec in tf.nest.flatten(self._tensor_spec)]
-        self._input_types = tf.nest.pack_sequence_as(self._tensor_spec, self._flat_types)
+        self._json_flat_types = [spec.dtype for spec in tf.nest.flatten(self._tensor_spec)]
+        self._input_types = tf.nest.pack_sequence_as(self._tensor_spec, self._json_flat_types)
 
         if flatten_lists:
             dataset = dataset.flat_map(self._parse_json_flat)
@@ -44,8 +44,8 @@ class ParseJson(tf.data.Dataset):
         return list(self._input_datasets)
 
     @property
-    def _element_structure(self):
-        return self._dataset._element_structure
+    def element_spec(self):
+        return self._dataset.element_spec
 
     def _filter_keys(self, data, input_types):
         """Only keep keys in the nested structure data, that match an entry in input_types
@@ -93,7 +93,7 @@ class ParseJson(tf.data.Dataset):
     def _flatten_to_numpy(self, data):
         flat_data = nest.flatten_up_to(self._input_types, data)
         return [np.reshape(np.array(x, dtype=t.as_numpy_dtype), s)
-                for x, s, t in zip(flat_data, self._flat_shapes, self._flat_types)]
+                for x, s, t in zip(flat_data, self._json_flat_shapes, self._json_flat_types)]
 
     def _parse_json_fn(self, raw):
         data = json.loads(raw.numpy())
@@ -113,7 +113,7 @@ class ParseJson(tf.data.Dataset):
         flat_feature = tf.py_function(
             self._parse_json_flatten_lists_fn,
             [raw],
-            self._flat_types)
+            self._json_flat_types)
 
         feature = tf.nest.pack_sequence_as(self._input_types, flat_feature)
 
@@ -123,7 +123,7 @@ class ParseJson(tf.data.Dataset):
         flat_feature = tf.py_function(
             self._parse_json_fn,
             [raw],
-            self._flat_types)
+            self._json_flat_types)
 
         feature = tf.nest.pack_sequence_as(self._input_types, flat_feature)
 

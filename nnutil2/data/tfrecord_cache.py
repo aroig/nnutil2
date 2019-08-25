@@ -31,7 +31,7 @@ class TFRecordCache(tf.data.Dataset):
             print("Preparing tfrecord: {}".format(path))
             nnu.io.write_tfrecord(dataset, path)
 
-        self._tensor_spec = nnu.nest.as_tensor_spec(dataset._element_structure)
+        self._tensor_spec = nnu.nest.as_tensor_spec(dataset.element_spec)
 
         if not os.path.exists(path):
             raise Exception("tfrecord file does not exist: {}".format(path))
@@ -44,7 +44,7 @@ class TFRecordCache(tf.data.Dataset):
         return []
 
     @property
-    def _element_structure(self):
+    def element_spec(self):
         return tf.data.experimental.NestedStructure(self._tensor_spec)
 
     def _needs_rebuild(self, path):

@@ -39,8 +39,8 @@ class TFRecord(tf.data.Dataset):
         return []
 
     @property
-    def _element_structure(self):
-        return self._dataset._element_structure
+    def element_spec(self):
+        return self._dataset.element_spec
 
     def _parse_example(self, example_proto):
         feature_spec = nnu.nest.as_feature_spec(self._tensor_spec)

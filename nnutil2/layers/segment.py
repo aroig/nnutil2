@@ -28,7 +28,7 @@ class Segment(network.Network):
     def _compose(self, l, x, kwargs):
         sig = [p.name for p in inspect.signature(l.call).parameters.values()]
         args = {k: kwargs[k] for k in set(sig) & set(kwargs.keys())}
-        y = l.apply(x, **args)
+        y = l(x, **args)
         return y
 
     def get_config(self):
