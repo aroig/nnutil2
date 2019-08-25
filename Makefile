@@ -47,8 +47,8 @@ EXT_DIR      := ext
 TESTS_DIR    := tests
 
 # Programs
-PYTHON       := python
-IPYTHON      := ipython
+PYTHON       := python3
+IPYTHON      := ipython3
 LINT         := pylint -E
 VIRTUALENV   := virtualenv
 COVERAGE     := coverage
@@ -78,7 +78,10 @@ SOURCE_FILES := $(shell find $(NAME)/ -name '*.py')
 # -------------------------------------------------------------------------- #
 
 $(VENV_DIR)/bin/activate: requirements.txt
-	@$(VIRTUALENV) $(VENV_DIR)
+	@if [ -L "$(VENV_DIR)" ] && [ ! -e "$(VENV_DIR)" ]; then
+		mkdir -p $$(readlink "$(VENV_DIR)")
+	fi
+	$(VIRTUALENV) -p $(PYTHON) $(VENV_DIR)
 	$(VENV_DIR)/bin/pip install -r requirements.txt
 	if [ -e $@ ]; then touch $@; fi
 
@@ -94,12 +97,14 @@ define setup-virtual-environment
 
 endef
 
-.PHONY: venv
+.PHONY: venv venv-clean
 
 venv: $(VENV_DIR)/bin/activate $(VENV_DIR)/bin/$(NAME)
 	@echo "Entering virtual environment: $(VENV_DIR)"
 	$(SHELL) --init-file <(echo "$(call setup-virtual-environment,$(VENV_DIR))")
 
+ivenv-clean:
+	@rm -Rf $(VENV_DIR)/bin $(VENV_DIR)/include $(VENV_DIR)/lib
 
 
 # -------------------------------------------------------------------------- #
