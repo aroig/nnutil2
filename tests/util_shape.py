@@ -25,22 +25,45 @@ class UtilShape(tf.test.TestCase):
         self.assertEqual(ts0, nnu.util.as_shape(tf.zeros(shape=[1, 2, 3])))
 
     def test_normalize_axis(self):
-        pass
+        axis0 = [-2, 1]
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        axisnorm0 = [2, 1]
+        self.assertEqual(axisnorm0, nnu.util.normalize_axis(shape0, axis0))
+
+        axis1 = [1, 23]
+        shape1 = tf.TensorShape([10, 20])
+        with self.assertRaises(AssertionError):
+            nnu.util.normalize_axis(shape1, axis1)
 
     def test_complementary_axis(self):
-        pass
+        axis0 = [-2, 1]
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        axiscomp0 = [0, 3]
+        self.assertEqual(axiscomp0, nnu.util.complementary_axis(shape0, axis0))
 
     def test_restrict_shape(self):
-        pass
+        axis0 = [-2, 1]
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        shaperes0 = tf.TensorShape([30, 20])
+        self.assertEqual(shaperes0, nnu.util.restrict_shape(shape0, axis0))
 
     def test_reduce_shape(self):
-        pass
+        axis0 = [-2, 1]
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        shapered0 = tf.TensorShape([10, 40])
+        self.assertEqual(shapered0, nnu.util.reduce_shape(shape0, axis0))
 
     def test_batch_shape(self):
-        pass
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        inner_shape0 = tf.TensorShape([30, 40])
+        batch_shape0 = tf.TensorShape([10, 20])
+        self.assertEqual(batch_shape0, nnu.util.batch_shape(shape0, inner_shape0))
 
     def test_is_inner_compatible_with(self):
-        pass
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        shape1 = tf.TensorShape([30, 40])
+        self.assertTrue(nnu.util.is_inner_compatible_with(shape0, shape1))
+        self.assertTrue(nnu.util.is_inner_compatible_with(shape1, shape0))
 
 if __name__ == '__main__':
     tf.test.main()

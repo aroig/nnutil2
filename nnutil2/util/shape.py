@@ -33,7 +33,7 @@ def normalize_axis(shape, axis):
     if axis is None:
         return list(range(0, shape.rank))
 
-    axis = [d if d >= 0 else rank - d for d in axis]
+    axis = [d if d >= 0 else rank + d for d in axis]
     assert max(axis) < rank
 
     return axis
