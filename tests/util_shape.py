@@ -65,5 +65,14 @@ class UtilShape(tf.test.TestCase):
         self.assertTrue(nnu.util.is_inner_compatible_with(shape0, shape1))
         self.assertTrue(nnu.util.is_inner_compatible_with(shape1, shape0))
 
+    def test_outer_broadcast(self):
+        tgt = tf.zeros(shape=[3, 2, 1])
+        x = tf.constant([[20], [30]], shape=(2, 1), dtype=tf.int32)
+        xbr = nnu.util.outer_broadcast(x, tgt)
+
+        xtrue = tf.constant([[[20], [30]], [[20], [30]], [[20], [30]]], shape=(3, 2, 1), dtype=tf.int32)
+        self.assertAllEqual(xtrue, xbr)
+
+
 if __name__ == '__main__':
     tf.test.main()

@@ -90,3 +90,20 @@ def is_inner_compatible_with(shape0, shape1):
         return shape1[-rank0:].is_compatible_with(shape0)
     else:
         return shape0[-rank1:].is_compatible_with(shape1)
+
+def outer_broadcast(x, target):
+    """Extends and broadcasts outer dimensions of x in order to match target
+    """
+    assert is_inner_compatible_with(x.shape, target.shape)
+
+    rank_x = x.shape.rank
+    rank_target = target.shape.rank
+    padding_dim = rank_target - rank_x
+
+    new_shape = tf.TensorShape(padding_dim * (1,)).concatenate(x.shape)
+    xnew = tf.reshape(x, shape=new_shape)
+
+    # NOTE: We use dynamic shape here to accomodate dynamic batch shapes
+    xnew = tf.broadcast_to(x, shape=tf.shape(target))
+
+    return xnew
