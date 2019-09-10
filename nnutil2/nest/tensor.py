@@ -13,6 +13,10 @@
 import tensorflow as tf
 import numpy as np
 
+def is_tensor(x):
+    return any([isinstance(x, tf.Tensor), isinstance(x, tf.SparseTensor), isinstance(x, tf.RaggedTensor)])
+
+
 def as_tensor(structure):
     if tf.nest.is_nested(structure):
         return tf.nest.map_structure(as_tensor, structure)
@@ -21,6 +25,9 @@ def as_tensor(structure):
         return structure
 
     elif isinstance(structure, tf.SparseTensor):
+        return tf.sparse.to_dense(structure)
+
+    elif isinstance(structure, tf.RaggedTensor):
         return tf.sparse.to_dense(structure)
 
     elif isinstance(structure, np.ndarray):
@@ -40,7 +47,7 @@ def as_numpy(structure):
     if tf.nest.is_nested(structure):
         return tf.nest.map_structure(as_numpy, structure)
 
-    elif isinstance(structure, tf.Tensor):
+    elif is_tensor(structure):
         return structure.numpy()
 
     elif isinstance(structure, np.ndarray):
