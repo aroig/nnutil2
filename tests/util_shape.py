@@ -62,8 +62,22 @@ class UtilShape(tf.test.TestCase):
     def test_is_inner_compatible_with(self):
         shape0 = tf.TensorShape([10, 20, 30, 40])
         shape1 = tf.TensorShape([30, 40])
+
         self.assertTrue(nnu.util.is_inner_compatible_with(shape0, shape1))
         self.assertTrue(nnu.util.is_inner_compatible_with(shape1, shape0))
+
+        self.assertFalse(nnu.util.is_outer_compatible_with(shape0, shape1))
+        self.assertFalse(nnu.util.is_outer_compatible_with(shape1, shape0))
+
+    def test_is_outer_compatible_with(self):
+        shape0 = tf.TensorShape([10, 20, 30, 40])
+        shape1 = tf.TensorShape([10, 20])
+
+        self.assertFalse(nnu.util.is_inner_compatible_with(shape0, shape1))
+        self.assertFalse(nnu.util.is_inner_compatible_with(shape1, shape0))
+
+        self.assertTrue(nnu.util.is_outer_compatible_with(shape0, shape1))
+        self.assertTrue(nnu.util.is_outer_compatible_with(shape1, shape0))
 
     def test_outer_broadcast(self):
         tgt = tf.zeros(shape=[3, 2, 1])
@@ -73,6 +87,13 @@ class UtilShape(tf.test.TestCase):
         xtrue = tf.constant([[[20], [30]], [[20], [30]], [[20], [30]]], shape=(3, 2, 1), dtype=tf.int32)
         self.assertAllEqual(xtrue, xbr)
 
+    def test_inner_broadcast(self):
+        tgt = tf.zeros(shape=[1, 2, 3])
+        x = tf.constant([[20], [30]], shape=(1, 2), dtype=tf.int32)
+        xbr = nnu.util.inner_broadcast(x, tgt)
+
+        xtrue = tf.constant([[[20, 20, 20], [30, 30, 30]]], shape=(1, 2, 3), dtype=tf.int32)
+        self.assertAllEqual(xtrue, xbr)
 
 if __name__ == '__main__':
     tf.test.main()

@@ -91,6 +91,24 @@ def is_inner_compatible_with(shape0, shape1):
     else:
         return shape0[-rank1:].is_compatible_with(shape1)
 
+def is_outer_compatible_with(shape0, shape1):
+    """Check whether shape0 contains shape1 are compatible on the inner dimensions.
+       The higher rank must be compatible with the lower rank shape as tail.
+    """
+    shape0 = as_shape(shape0)
+    shape1 = as_shape(shape1)
+
+    rank0 = shape0.rank
+    assert rank0 is not None
+
+    rank1 = shape1.rank
+    assert rank1 is not None
+
+    if rank0 < rank1:
+        return shape1[:rank0].is_compatible_with(shape0)
+    else:
+        return shape0[:rank1].is_compatible_with(shape1)
+
 def outer_broadcast(x, target):
     """Extends and broadcasts outer dimensions of x in order to match target
     """
@@ -100,10 +118,44 @@ def outer_broadcast(x, target):
     rank_target = target.shape.rank
     padding_dim = rank_target - rank_x
 
-    new_shape = tf.TensorShape(padding_dim * (1,)).concatenate(x.shape)
+    ones_shape = tf.TensorShape(padding_dim * (1,))
+    new_shape = ones_shape.concatenate(x.shape)
     xnew = tf.reshape(x, shape=new_shape)
 
     # NOTE: We use dynamic shape here to accomodate dynamic batch shapes
-    xnew = tf.broadcast_to(x, shape=tf.shape(target))
+    if isinstance(target, tf.TensorShape):
+        target_shape = target
+    elif isinstance(target, tf.Tensor):
+        target_shape = tf.shape(target)
+    else:
+        raise Error("Unhandled type: {}".format(type(target)))
 
-    return xnew
+    x_broadcast = tf.broadcast_to(xnew, shape=target_shape)
+
+    return x_broadcast
+
+def inner_broadcast(x, target):
+    """Extends and broadcasts inner dimensions of x in order to match target
+    """
+    assert is_outer_compatible_with(x.shape, target.shape)
+
+    rank_x = x.shape.rank
+    rank_target = target.shape.rank
+    padding_dim = rank_target - rank_x
+
+    ones_shape = tf.TensorShape(padding_dim * (1,))
+    new_shape = x.shape.concatenate(ones_shape)
+    xnew = tf.reshape(x, shape=new_shape)
+
+    # NOTE: We use dynamic shape here to accomodate dynamic batch shapes
+    if isinstance(target, tf.TensorShape):
+        target_shape = target
+    elif isinstance(target, tf.Tensor):
+        target_shape = tf.shape(target)
+    else:
+        raise Error("Unhandled type: {}".format(type(target)))
+
+
+    x_broadcast = tf.broadcast_to(xnew, shape=target_shape)
+
+    return x_broadcast
