@@ -17,7 +17,7 @@ from tensorflow.python.ops.parallel_for import control_flow_ops
 from tensorflow.python.util import nest
 
 
-def jacobian(output, inputs, use_pfor=True, parallel_iterations=None):
+def jacobian(output, inputs, use_pfor=False, parallel_iterations=None):
   """Computes jacobian of `output` w.r.t. `inputs`.
   Args:
     output: A tensor.
@@ -70,7 +70,7 @@ def jacobian(output, inputs, use_pfor=True, parallel_iterations=None):
   return nest.pack_sequence_as(inputs, pfor_outputs)
 
 
-def batch_jacobian(output, inp, use_pfor=True, parallel_iterations=None):
+def batch_jacobian(output, inp, use_pfor=False, parallel_iterations=None):
   """Computes and stacks jacobians of `output[i,...]` w.r.t. `input[i,...]`.
   e.g.
   x = tf.constant([[1, 2], [3, 4]], dtype=tf.float32)
