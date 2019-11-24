@@ -45,7 +45,7 @@ class TFRecordCache(tf.data.Dataset):
 
     @property
     def element_spec(self):
-        return tf.data.experimental.NestedStructure(self._tensor_spec)
+        return self._tensor_spec
 
     def _needs_rebuild(self, path):
         return not os.path.exists(path)

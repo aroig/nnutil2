@@ -36,9 +36,6 @@ def as_tensor(structure):
     elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
         return tf.constant(structure, shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif isinstance(structure, tf.data.experimental.NestedStructure):
-        return tf.nest.map_structure(as_tensor, structure._nested_structure)
-
     else:
         raise Exception("Cannot handle nested structure of type: {}".format(type(structure)))
 
@@ -56,9 +53,6 @@ def as_numpy(structure):
     elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
         dtype = tf.dtype.as_dtype(type(structure)).as_numpy_dtype()
         return np.array(structure, shape=(), dtype=dtype)
-
-    elif isinstance(structure, tf.data.experimental.NestedStructure):
-        return tf.nest.map_structure(as_numpy, structure._nested_structure)
 
     else:
         raise Exception("Cannot handle nested structure of type: {}".format(type(structure)))

@@ -46,8 +46,7 @@ def as_feature(structure):
     elif any([isinstance(structure, c) for c in [int, np.int32, np.int64]]):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[structure]))
 
-    elif any([isinstance(structure, c) for c in [tf.data.experimental.NestedStructure,
-                                                 tf.data.experimental.TensorStructure,
+    elif any([isinstance(structure, c) for c in [tf.data.experimental.TensorStructure,
                                                  tf.data.experimental.SparseTensorStructure]]):
         return as_feature(as_tensor_spec(structure))
 
@@ -94,8 +93,7 @@ def as_feature_spec(structure):
     elif any([isinstance(structure, c) for c in [str, bytes]]):
         return tf.io.FixedLenFeature(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif any([isinstance(structure, c) for c in [tf.data.experimental.NestedStructure,
-                                                 tf.data.experimental.TensorStructure,
+    elif any([isinstance(structure, c) for c in [tf.data.experimental.TensorStructure,
                                                  tf.data.experimental.SparseTensorStructure]]):
         return as_feature_spec(as_tensor_spec(structure))
 

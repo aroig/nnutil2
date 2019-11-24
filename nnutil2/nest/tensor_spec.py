@@ -29,9 +29,6 @@ def as_tensor_spec(structure):
     elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
         return tf.TensorSpec(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif isinstance(structure, tf.data.experimental.NestedStructure):
-        return tf.nest.map_structure(as_tensor_spec, structure._nested_structure)
-
     elif isinstance(structure, tf.data.experimental.TensorStructure):
         return tf.TensorSpec(shape=structure.shape, dtype=structure.dtype)
 
@@ -54,9 +51,6 @@ def tensor_spec_to_python(tensor_spec):
             'shape': tensor_spec.shape.as_list(),
             'dtype': tensor_spec.dtype.name,
         }
-
-    elif isinstance(tensor_spec, tf.data.experimental.NestedStructure):
-        return tf.nest.map_structure(tensor_spec_to_python, tensor_spec._nested_structure)
 
     else:
         raise Exception("Cannot handle nested structure of type: {}".format(type(tensor_spec)))
@@ -98,8 +92,5 @@ def same_tensor_spec(ts0, ts1):
 
     elif isinstance(ts0, tf.TensorSpec) and isinstance(ts1, tf.TensorSpec):
         return ts0 == ts1 and ts0.name == ts1.name
-
-    elif isinstance(ts0, tf.data.experimental.NestedStructure) or isinstance(ts1, tf.data.experimental.NestedStructure):
-        return same_tensor_spec(as_tensor_spec(ts0), as_tensor_spec(ts1))
 
     return False
