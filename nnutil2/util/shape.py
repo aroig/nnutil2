@@ -128,7 +128,7 @@ def outer_broadcast(x, target):
     elif isinstance(target, tf.Tensor):
         target_shape = tf.shape(target)
     else:
-        raise Error("Unhandled type: {}".format(type(target)))
+        raise Exception("Unhandled type: {}".format(type(target)))
 
     x_broadcast = tf.broadcast_to(xnew, shape=target_shape)
 
@@ -153,8 +153,7 @@ def inner_broadcast(x, target):
     elif isinstance(target, tf.Tensor):
         target_shape = tf.shape(target)
     else:
-        raise Error("Unhandled type: {}".format(type(target)))
-
+        raise Exception("Unhandled type: {}".format(type(target)))
 
     x_broadcast = tf.broadcast_to(xnew, shape=target_shape)
 
