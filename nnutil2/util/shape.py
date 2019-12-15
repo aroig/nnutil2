@@ -74,7 +74,7 @@ def batch_shape(shape, inner_shape):
     return shape[0:batch_rank]
 
 def is_inner_compatible_with(shape0, shape1):
-    """Check whether shape0 contains shape1 are compatible on the inner dimensions.
+    """Check whether shape0 and shape1 are compatible on the inner dimensions.
        The higher rank must be compatible with the lower rank shape as tail.
     """
     shape0 = as_shape(shape0)
@@ -109,9 +109,40 @@ def is_outer_compatible_with(shape0, shape1):
     else:
         return shape0[:rank1].is_compatible_with(shape1)
 
+def outer_squeeze(x):
+    shape = x.shape
+    k = 0
+    for i in range(0, shape.rank):
+        if shape[i] == 1:
+            k += 1
+        else:
+            break
+
+    if k > 0:
+        axis = list(range(0, k))
+        return tf.squeeze(x, axis=axis)
+    else:
+        return x
+
+def inner_squeeze(x):
+    shape = x.shape
+    k = 0
+    for i in reversed(range(0, shape.rank)):
+        if shape[i] == 1:
+            k += 1
+        else:
+            break
+    if k > 0:
+        axis = list(range(shape.rank - k, shape.rank))
+        return tf.squeeze(x, axis=axis)
+    else:
+        return x
+
 def outer_broadcast(x, target):
     """Extends and broadcasts outer dimensions of x in order to match target
     """
+    x = outer_squeeze(x)
+
     assert is_inner_compatible_with(x.shape, target.shape)
 
     rank_x = x.shape.rank
@@ -137,6 +168,8 @@ def outer_broadcast(x, target):
 def inner_broadcast(x, target):
     """Extends and broadcasts inner dimensions of x in order to match target
     """
+    x = inner_squeeze(x)
+
     assert is_outer_compatible_with(x.shape, target.shape)
 
     rank_x = x.shape.rank
