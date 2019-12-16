@@ -12,3 +12,4 @@
 
 from .jacobian import *
 from .reduce_inner_sum import *
+from .trace_mc import *
