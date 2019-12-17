@@ -21,7 +21,7 @@ class Tensorboard:
         self._debugger = False
 
     def __enter__(self):
-        args = ["tensorboard", "--port={}".format(self._port)]
+        args = ["tensorboard", "--bind_all", "--port={}".format(self._port)]
 
         if self._debugger:
             args.append("--deugger_port={}".format(self._port + 1))
