@@ -46,6 +46,7 @@ class MathTraceMC(tf.test.TestCase):
             def f(x):
                 return tf.linalg.matvec(A, x)
 
-            tr = nnu.math.trace_mc(f, shape=(1, 3), nsamples=1024, batch_rank=1)
-            self.assertEqual(tr.shape, tf.TensorShape([1]))
-            self.assertAllClose(tf.constant([9], dtype=tf.float32), tr, atol=2e-1)
+            tr = nnu.math.trace_mc(f, shape=(1024, 3), batch_rank=1)
+            tr = tf.reduce_mean(tr, axis=0)
+            self.assertEqual(tr.shape, tf.TensorShape([]))
+            self.assertAllClose(tf.constant(9, dtype=tf.float32), tr, atol=2e-1)
