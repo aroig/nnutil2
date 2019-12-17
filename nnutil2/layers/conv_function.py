@@ -12,6 +12,7 @@
 import numpy as np
 import tensorflow as tf
 
+from .residual import Residual
 from .segment import Segment
 from ..util import as_shape
 
@@ -23,6 +24,8 @@ class ConvFunction(Segment):
 
         self._in_shape = as_shape(input_shape)
         self._filters = filters
+        self._layer_activation = tf.keras.activations.get(activation)
+        self._residual = residual
 
         kernel_size = 3
         dimension = self._in_shape.rank - 1
@@ -55,8 +58,11 @@ class ConvFunction(Segment):
                 kernel_size=dimension * (kernel_size,),
                 strides=strides,
                 padding='same',
-                activation=activation
+                activation=(tf.keras.activations.linear if self._residual else self._layer_activation)
             )
+
+            if self._residual:
+                conv_layer = Residual(layers=[conv_layer], activation=self._layer_activation)
 
             cur_shape = conv_layer.compute_output_shape(cur_shape)
 
