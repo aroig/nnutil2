@@ -16,9 +16,9 @@ def pr_curve(data, name="pr_curve", step=None, description=None):
     data = tf.cast(data, dtype=tf.float32)
 
     num_thresholds = data.shape[-1]
-    tf.debugging.assert_shapes({
-        data: (2, 2, num_thresholds)
-    })
+    tf.debugging.assert_shapes([
+        (data, (2, 2, num_thresholds))
+    ])
 
     summary_metadata = tb.plugins.pr_curve.metadata.create_summary_metadata(
         display_name=name,
