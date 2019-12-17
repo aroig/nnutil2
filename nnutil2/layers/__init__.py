@@ -16,3 +16,4 @@ from .feature import Feature
 from .identity import Identity
 from .segment import Segment
 from .random_normal import RandomNormal
+from .conv_function import ConvFunction
