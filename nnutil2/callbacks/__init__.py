@@ -12,3 +12,4 @@
 
 from .tensorboard import *
 from .classification_tensorboard import *
+from .progbar_logger import *
