@@ -226,7 +226,7 @@ class Experiment:
         return metrics
 
     def progbar_metrics(self):
-        metrics = ["loss"]
+        metrics = ["loss", "val_loss"]
         return metrics
 
     def train_callbacks(self):

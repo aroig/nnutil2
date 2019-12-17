@@ -17,10 +17,11 @@ from ..util import as_shape
 
 class ConvFunction(Segment):
     """A collection of layers"""
-    def __init__(self, shape=None, depth=None, filters=1, activation=None, layer_class=None, **kwargs):
+    def __init__(self, input_shape=None, depth=None, residual=False, filters=1,
+                 activation=None, layer_class=None, **kwargs):
         layers = []
 
-        self._in_shape = as_shape(shape)
+        self._in_shape = as_shape(input_shape)
         self._filters = filters
 
         kernel_size = 3
@@ -65,7 +66,7 @@ class ConvFunction(Segment):
 
         fc_layer = tf.keras.layers.Dense(
             units=self._filters,
-            activation=activation
+            activation=tf.keras.activations.linear
         )
 
         layers.append(tf.keras.layers.Flatten())

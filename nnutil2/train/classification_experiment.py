@@ -54,8 +54,8 @@ class ClassificationExperiment(Experiment):
     def progbar_metrics(self):
         metrics = super(ClassificationExperiment, self).progbar_metrics()
         metrics.extend([
-            "accuracy",
-            "f1_score"
+            "val_accuracy",
+            "val_f1_score"
         ])
         return metrics
 
