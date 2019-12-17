@@ -51,6 +51,14 @@ class ClassificationExperiment(Experiment):
 
         return metrics
 
+    def progbar_metrics(self):
+        metrics = super(ClassificationExperiment, self).progbar_metrics()
+        metrics.extend([
+            "accuracy",
+            "f1_score"
+        ])
+        return metrics
+
     def train_callbacks(self):
         callbacks = super(ClassificationExperiment, self).train_callbacks()
         callbacks.extend([

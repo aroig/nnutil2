@@ -29,7 +29,8 @@ def register_experiment(cls):
     return cls
 
 class Experiment:
-    def __init__(self, train_path=None, data_path=None, model=None, hparams={}, validation_steps=None, resume=False, seed=None):
+    def __init__(self, train_path=None, data_path=None, model=None, hparams={},
+                 validation_steps=None, resume=False, seed=None):
         assert model is not None
 
         self._train_path = None
@@ -69,10 +70,6 @@ class Experiment:
             os.makedirs(self.log_path)
 
         self._seed = seed
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        register_experiment(cls)
 
     def _last_dirname(self, fallback):
         all_runs = []
@@ -174,7 +171,7 @@ class Experiment:
             validation_data=eval_dataset,
             validation_steps=self._validation_steps,
             callbacks=self.train_callbacks(),
-            verbose=1,
+            verbose=0,
             **kwargs)
 
     def evaluate(self, **kwargs):
@@ -229,16 +226,21 @@ class Experiment:
         metrics = []
         return metrics
 
+    def progbar_metrics(self):
+        metrics = ["loss"]
+        return metrics
+
     def train_callbacks(self):
         model_file = os.path.join(self.model_path, "model.hdf5")
+        progbar_metrics = self.progbar_metrics()
 
         callbacks = [
-            # NOTE: cannot use load_weights_on_restart because the model is only created upon training.
-            # Before training there is no model to load weights into and the reader fails.
             tf.keras.callbacks.ModelCheckpoint(
                 filepath=model_file,
-                load_weights_on_restart=False
             ),
+            nnu.callbacks.ProgbarLogger(
+                logged_metrics=progbar_metrics
+            )
         ]
 
         return callbacks
