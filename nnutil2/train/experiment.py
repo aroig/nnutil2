@@ -160,7 +160,6 @@ class Experiment:
         if eval_dataset is not None:
             eval_dataset = eval_dataset.batch(batch_size)
 
-        # NOTE: we need to run the model in order for it to be created and do the load
         if self._resume:
             self.load()
 

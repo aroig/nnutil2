@@ -66,7 +66,6 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
     def on_test_end(self, logs=None):
         eval_writer = self._get_writer(self._validation_run_name)
         with eval_writer.as_default():
-            # TODO: add trial_id=self._run_id after tb 1.14
-            hp.hparams(hparams=self.model.hparams)
+            hp.hparams(hparams=self.model.hparams, trial_id=self._run_id)
 
         return super(TensorBoard, self).on_train_end(logs=logs)
