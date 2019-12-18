@@ -20,6 +20,8 @@ class ConvFunction(Segment):
     """A function defined by a segment of convolutional nets"""
     def __init__(self, input_shape=None, depth=None, output_shape=(1,), residual=False,
                  activation=None, layer_class=None, **kwargs):
+        assert input_shape is not None
+
         layers = []
 
         self._in_shape = as_shape(input_shape)
