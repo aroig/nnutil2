@@ -17,7 +17,7 @@ from .segment import Segment
 from ..util import as_shape
 
 class ConvFunction(Segment):
-    """A collection of layers"""
+    """A function defined by a segment of convolutional nets"""
     def __init__(self, input_shape=None, depth=None, residual=False, filters=1,
                  activation=None, layer_class=None, **kwargs):
         layers = []
