@@ -14,7 +14,7 @@ import tensorflow as tf
 
 from .residual import Residual
 from .segment import Segment
-from ..util import as_shape
+from ..util import as_shape, interpolate_shape
 
 class ConvFunction(Segment):
     """A function defined by a segment of convolutional nets"""
@@ -34,31 +34,24 @@ class ConvFunction(Segment):
 
         Layer = self._layer_class(self._in_shape, layer_class)
 
-        nfeatures = int(self._in_shape[-1])
-        conv_shape = np.array(list(self._in_shape[0:-1]))
-
-        max_depth = int(np.round(np.log2(np.max(conv_shape))))
+        max_depth = int(np.round(max([np.log2(x) for x in self._in_shape[0:-1]])))
         if depth is not None:
             max_depth = max(max_depth, depth)
 
         self._depth = max_depth
 
+        nfeatures = int(self._in_shape[-1] * np.power(2, max_depth))
+
+        shape0 = self._in_shape
+        shape1 = tf.TensorShape(dimension * [1] + [nfeatures])
+
         cur_shape = tf.TensorShape([1]) + self._in_shape
-        for i in range(0, max_depth):
-            alpha = 1 - (i / (max_depth - 1))
-            expected_conv_shape = np.round(np.exp(alpha * np.log(conv_shape)))
-
-            cur_conv_shape = np.array(list(cur_shape[1:-1]))
-            strides = tuple([int(x) for x in np.round(cur_conv_shape / expected_conv_shape)])
-            factor = np.prod(strides)
-
-            if factor > 1:
-                nfeatures *= factor
-
+        for sa in interpolate_shape(shape0, shape1, max_depth):
             conv_layer = Layer(
-                filters=nfeatures,
+                filters=sa.filters,
                 kernel_size=dimension * (kernel_size,),
-                strides=strides,
+                strides=sa.strides(cur_shape),
+                dilation_rate=sa.dilation_rate(cur_shape),
                 padding='same',
                 activation=(tf.keras.activations.linear if self._residual else self._layer_activation)
             )
@@ -70,7 +63,7 @@ class ConvFunction(Segment):
 
             layers.append(conv_layer)
 
-        assert cur_shape == tf.TensorShape((dimension + 1) * [1] + [nfeatures])
+        assert cur_shape[1:] == shape1
 
         fc_layer = tf.keras.layers.Dense(
             units=self._out_shape.num_elements(),
