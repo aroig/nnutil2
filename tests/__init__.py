@@ -17,4 +17,5 @@ from .layers_conv_function import *
 from .data_parse_json import *
 from .data_merge import *
 from .util_shape import *
+from .util_interpolate_shape import *
 from .math_trace_mc import *

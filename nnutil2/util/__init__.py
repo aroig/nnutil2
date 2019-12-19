@@ -11,3 +11,4 @@
 
 from .tensorboard import *
 from .shape import *
+from .interpolate_shape import *
