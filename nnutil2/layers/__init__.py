@@ -18,3 +18,4 @@ from .segment import Segment
 from .random_normal import RandomNormal
 from .conv_function import ConvFunction
 from .residual import Residual
+from .conv import Conv
