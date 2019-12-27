@@ -17,12 +17,17 @@ import nnutil2 as nnu
 
 from tensorflow.python.keras import testing_utils
 
-class LayersConfFunction(tf.test.TestCase):
+class LayersConvFunction(tf.test.TestCase):
     def test_layer_shape_1D(self):
         with self.cached_session() as sess:
             shape = (5, 1)
             x = tf.random.normal(shape=(3,) + shape, dtype=tf.float32)
-            func = nnu.layers.ConvFunction(input_shape=shape, depth=4, output_shape=(2,), activation=tf.keras.activations.relu)
+            func = nnu.layers.ConvFunction(
+                input_shape=shape,
+                depth=4,
+                output_shape=(2,),
+                activation=tf.keras.activations.relu
+            )
 
             y = func(x)
             self.assertEqual(tf.TensorShape([3, 2]), y.shape)
@@ -32,7 +37,12 @@ class LayersConfFunction(tf.test.TestCase):
         with self.cached_session() as sess:
             shape = (5, 5, 1)
             x = tf.random.normal(shape=(3,) + shape, dtype=tf.float32)
-            func = nnu.layers.ConvFunction(input_shape=shape, depth=4, output_shape=(2,), activation=tf.keras.activations.relu)
+            func = nnu.layers.ConvFunction(
+                input_shape=shape,
+                depth=4,
+                output_shape=(2,),
+                activation=tf.keras.activations.relu
+            )
 
             y = func(x)
             self.assertEqual(tf.TensorShape([3, 2]), y.shape)
@@ -42,7 +52,12 @@ class LayersConfFunction(tf.test.TestCase):
         with self.cached_session() as sess:
             shape = (5, 5, 5, 1)
             x = tf.random.normal(shape=(3,) + shape, dtype=tf.float32)
-            func = nnu.layers.ConvFunction(input_shape=shape, depth=4, output_shape=(2,), activation=tf.keras.activations.relu)
+            func = nnu.layers.ConvFunction(
+                input_shape=shape,
+                depth=4,
+                output_shape=(2,),
+                activation=tf.keras.activations.relu
+            )
 
             y = func(x)
             self.assertEqual(tf.TensorShape([3, 2]), y.shape)

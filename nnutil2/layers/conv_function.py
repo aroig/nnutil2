@@ -14,6 +14,8 @@ import tensorflow as tf
 
 from .residual import Residual
 from .segment import Segment
+from .conv import Conv
+
 from ..util import as_shape, interpolate_shape
 
 class ConvFunction(Segment):
@@ -32,7 +34,10 @@ class ConvFunction(Segment):
         kernel_size = 3
         dimension = self._in_shape.rank - 1
 
-        Layer = self._layer_class(self._in_shape, layer_class)
+        if layer_class is None:
+            Layer = Conv
+        else:
+            Layer = layer_class
 
         max_depth = int(np.round(max([np.log2(x) for x in self._in_shape[0:-1]])))
         if depth is not None:
@@ -45,9 +50,10 @@ class ConvFunction(Segment):
         shape0 = self._in_shape
         shape1 = tf.TensorShape(dimension * [1] + [nfeatures])
 
-        cur_shape = tf.TensorShape([1]) + self._in_shape
+        cur_shape = self._in_shape
         for sa in interpolate_shape(shape0, shape1, max_depth):
             conv_layer = Layer(
+                input_shape=cur_shape,
                 filters=sa.filters,
                 kernel_size=dimension * (kernel_size,),
                 strides=sa.strides(cur_shape),
@@ -59,11 +65,11 @@ class ConvFunction(Segment):
             if self._residual:
                 conv_layer = Residual(layers=[conv_layer], activation=self._layer_activation)
 
-            cur_shape = conv_layer.compute_output_shape(cur_shape)
+            cur_shape = conv_layer.compute_output_shape(tf.TensorShape([1]) + cur_shape)[1:]
 
             layers.append(conv_layer)
 
-        assert cur_shape[1:] == shape1
+        assert cur_shape == shape1
 
         fc_layer = tf.keras.layers.Dense(
             units=self._out_shape.num_elements(),
@@ -75,25 +81,6 @@ class ConvFunction(Segment):
         layers.append(tf.keras.layers.Reshape(target_shape=self._out_shape))
 
         super(ConvFunction, self).__init__(layers=layers, **kwargs)
-
-    def _layer_class(self, shape, layer_class):
-        if layer_class is not None:
-            return layer_class
-
-        if self._in_shape.rank == 1:
-            return tf.keras.layers.Dense
-
-        elif self._in_shape.rank == 2:
-            return tf.keras.layers.Conv1D
-
-        elif self._in_shape.rank == 3:
-            return tf.keras.layers.Conv2D
-
-        elif self._in_shape.rank == 4:
-            return tf.keras.layers.Conv3D
-
-        else:
-            raise Exception("Input shape must have rank between 1 and 4")
 
     @property
     def depth(self):
