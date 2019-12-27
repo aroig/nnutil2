@@ -31,11 +31,15 @@ class ShapeAdaptor:
         return int(self.expected_shape[-1])
 
     def strides(self, input_shape):
+        assert input_shape.rank >= self._rank
+
         input_shape = list(input_shape[-self._rank:-1])
         output_shape = list(self._expected_shape[:-1])
         return tuple([int(max(1, np.round(x/y))) for x, y in zip(input_shape, output_shape)])
 
     def dilation_rate(self, input_shape):
+        assert input_shape.rank >= self._rank
+
         input_shape = list(input_shape[-self._rank:-1])
         output_shape = list(self._expected_shape[:-1])
         return tuple([int(max(1, np.round(y/x))) for x, y in zip(input_shape, output_shape)])
