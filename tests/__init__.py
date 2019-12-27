@@ -15,6 +15,8 @@ from .layers_identity import *
 from .layers_segment import *
 from .layers_conv import *
 from .layers_conv_function import *
+from .layers_pooling import *
+from .layers_global_pooling import *
 from .data_parse_json import *
 from .data_merge import *
 from .util_shape import *

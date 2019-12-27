@@ -19,3 +19,5 @@ from .random_normal import RandomNormal
 from .conv_function import ConvFunction
 from .residual import Residual
 from .conv import Conv
+from .pooling import Pooling
+from .global_pooling import GlobalPooling
