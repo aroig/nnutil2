@@ -69,7 +69,7 @@ class LayersConv(tf.test.TestCase):
 
             layer = nnu.layers.Conv(
                 input_shape=shape,
-                mode='separable'
+                mode='separable',
                 filters=8,
                 kernel_size=(3,),
                 activation=tf.keras.activations.relu
@@ -85,7 +85,7 @@ class LayersConv(tf.test.TestCase):
 
             layer = nnu.layers.Conv(
                 input_shape=shape,
-                mode='separable'
+                mode='separable',
                 filters=8,
                 kernel_size=(3, 3),
                 activation=tf.keras.activations.relu
@@ -96,13 +96,12 @@ class LayersConv(tf.test.TestCase):
 
     def test_layer_depthwise_conv_2D(self):
         with self.cached_session() as sess:
-            shape = (5, 5, 1)
+            shape = (5, 5, 8)
             x = tf.random.normal(shape=(4,) + shape, dtype=tf.float32)
 
             layer = nnu.layers.Conv(
                 input_shape=shape,
-                mode='depthwise'
-                filters=8,
+                mode='depthwise',
                 kernel_size=(3, 3),
                 activation=tf.keras.activations.relu
             )
