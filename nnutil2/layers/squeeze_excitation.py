@@ -25,6 +25,7 @@ class SqueezeExcitation(Layer):
         assert input_shape is not None
         self._in_shape = as_shape(input_shape)
         self._contraction = contraction
+        self._excitation_activation = activation
 
         nchannels = int(self._in_shape[-1])
         self._nchannels = nchannels
@@ -48,8 +49,10 @@ class SqueezeExcitation(Layer):
     def get_config(self):
         config = {
             'input_shape': self._in_shape,
-            'contraction': self._contraction
+            'contraction': self._contraction,
+            'activation': self._excitation_activation
         }
+
         base_config = super(SqueezeExcitation, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 

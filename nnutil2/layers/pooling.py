@@ -45,7 +45,8 @@ class Pooling(Layer):
                 return tf.keras.layers.AveragePooling3D
 
             else:
-                raise Exception("Input shape must have rank between 1 and 4")
+                raise Exception("Input shape must have rank between 1 and 4. Got {}".format(self._in_shape))
+
         elif reduction == 'max':
             if self._in_shape.rank == 1:
                 return Identity
@@ -60,12 +61,17 @@ class Pooling(Layer):
                 return tf.keras.layers.MaxPool3D
 
             else:
-                raise Exception("Input shape must have rank between 1 and 4")
+                raise Exception("Input shape must have rank between 1 and 4. Got {}".format(self._in_shape))
         else:
             raise Exception("Unknown reduction function {}".format(reduction))
 
     def get_config(self):
-        return self._layer.get_config()
+        config = {
+            'input_shape': self._in_shape,
+            'reduction': self._reduction
+        }
+        base_config = super(Pooling, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, inputs, **kwargs):
         return self._layer(inputs, **kwargs)

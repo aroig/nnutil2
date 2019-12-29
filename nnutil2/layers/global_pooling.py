@@ -24,6 +24,7 @@ class GlobalPooling(Layer):
     def __init__(self, input_shape=None, reduction='average', *args, **kwargs):
         assert input_shape is not None
         self._in_shape = as_shape(input_shape)
+        self._reduction = reduction
 
         Layer = self._layer_class(input_shape, reduction=reduction)
         self._layer = Layer(*args, input_shape=input_shape, **kwargs)
@@ -45,7 +46,7 @@ class GlobalPooling(Layer):
                 return tf.keras.layers.GlobalAveragePooling3D
 
             else:
-                raise Exception("Input shape must have rank between 1 and 4")
+                raise Exception("Input shape must have rank between 1 and 4. Got {}".format(self._in_shape))
         elif reduction == 'max':
             if self._in_shape.rank == 1:
                 return Identity
@@ -60,12 +61,17 @@ class GlobalPooling(Layer):
                 return tf.keras.layers.GlobalMaxPool3D
 
             else:
-                raise Exception("Input shape must have rank between 1 and 4")
+                raise Exception("Input shape must have rank between 1 and 4. Got {}".format(self._in_shape))
         else:
-            raise Exception("Unknown reduction function {}".format(reduction))
+            raise Exception("Unknown reduction function. Got {}".format(reduction))
 
     def get_config(self):
-        return self._layer.get_config()
+        config = {
+            'input_shape': self._in_shape,
+            'reduction': self._reduction
+        }
+        base_config = super(GlobalPooling, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, inputs, **kwargs):
         return self._layer(inputs, **kwargs)
