@@ -10,13 +10,13 @@
 # license. See the LICENSE file for details.
 
 
-import inspect
-
 from tensorflow.python.keras.engine import network
 import tensorflow as tf
 
+from ..util import kwargs_for
+
 class Segment(network.Network):
-    """A collection of layers"""
+    """A sequential collection of layers"""
     def __init__(self, layers=None, activation=None, **kwargs):
         super(Segment, self).__init__(**kwargs)
         assert isinstance(layers, list)
@@ -25,22 +25,22 @@ class Segment(network.Network):
         self._segment_activation = tf.keras.activations.get(activation)
         self._segment_states = []
 
-    def _compose(self, l, x, kwargs):
-        sig = [p.name for p in inspect.signature(l.call).parameters.values()]
-        args = {k: kwargs[k] for k in set(sig) & set(kwargs.keys())}
-        y = l(x, **args)
-        return y
-
     def get_config(self):
-        config = {}
-        return config
+        config = {
+            'layers': [ly.get_config() for ly in self._layers],
+            'activation': self._segment_activation
+        }
+
+        base_config = super(Segment, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, inputs, **kwargs):
         x = inputs
         self._segment_states.append(x)
 
         for l in self._segment_layers:
-            x = self._compose(l, x, kwargs)
+            layer_kwargs = kwargs_for(kwargs, l.call)
+            x = l(x, **layer_kwargs)
             self._segment_states.append(x)
 
         if self._segment_activation is not None:

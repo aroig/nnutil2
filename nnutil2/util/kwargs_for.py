@@ -9,7 +9,11 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
-from .tensorboard import *
-from .shape import *
-from .interpolate_shape import *
-from .kwargs_for import *
+import inspect
+
+import tensorflow as tf
+
+def kwargs_for(kwargs, func):
+    sig = [p.name for p in inspect.signature(func).parameters.values()]
+    args = {k: kwargs[k] for k in set(sig) & set(kwargs.keys())}
+    return args
