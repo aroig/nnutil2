@@ -22,3 +22,4 @@ from .conv import Conv
 from .pooling import Pooling
 from .global_pooling import GlobalPooling
 from .squeeze_excitation import SqueezeExcitation
+from .bottleneck import Bottleneck

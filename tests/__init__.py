@@ -18,6 +18,7 @@ from .layers_conv_function import *
 from .layers_pooling import *
 from .layers_global_pooling import *
 from .layers_squeeze_excitation import *
+from .layers_bottleneck import *
 from .data_parse_json import *
 from .data_merge import *
 from .util_shape import *
