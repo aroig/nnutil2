@@ -95,4 +95,4 @@ class Bottleneck(Layer):
         return y
 
     def compute_output_shape(self, input_shape):
-        return self._layers.compute_output_shape(input_shape)
+        return self._bottleneck_layers.compute_output_shape(input_shape)
