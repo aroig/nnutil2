@@ -20,8 +20,9 @@ from ..util import as_shape, interpolate_shape
 
 class ConvFunction(Segment):
     """A function defined by a segment of convolutional nets"""
-    def __init__(self, input_shape=None, depth=None, output_shape=(1,), residual=False,
-                 activation=None, layer_class=None, **kwargs):
+    def __init__(self, input_shape=None, depth=None, output_shape=(1,),
+                 residual=False, activation=None, layer_class=None,
+                 **kwargs):
         assert input_shape is not None
 
         layers = []
@@ -30,9 +31,6 @@ class ConvFunction(Segment):
         self._out_shape = as_shape(output_shape)
         self._layer_activation = tf.keras.activations.get(activation)
         self._residual = residual
-
-        kernel_size = 3
-        dimension = self._in_shape.rank - 1
 
         if layer_class is None:
             Layer = Conv
@@ -45,6 +43,8 @@ class ConvFunction(Segment):
 
         self._depth = max_depth
 
+        kernel_size = 3
+        dimension = self._in_shape.rank - 1
         nfeatures = int(self._in_shape[-1] * np.power(2, max_depth))
 
         shape0 = self._in_shape
@@ -52,6 +52,11 @@ class ConvFunction(Segment):
 
         cur_shape = self._in_shape
         for sa in interpolate_shape(shape0, shape1, max_depth):
+            if self._residual:
+                activation = tf.keras.activations.linear
+            else:
+                activation = self._layer_activation
+
             conv_layer = Layer(
                 input_shape=cur_shape,
                 filters=sa.filters,
@@ -59,7 +64,7 @@ class ConvFunction(Segment):
                 strides=sa.strides(cur_shape),
                 dilation_rate=sa.dilation_rate(cur_shape),
                 padding='same',
-                activation=(tf.keras.activations.linear if self._residual else self._layer_activation)
+                activation=activation
             )
 
             if self._residual:
@@ -71,12 +76,14 @@ class ConvFunction(Segment):
 
         assert cur_shape == shape1
 
-        fc_layer = tf.keras.layers.Dense(
-            units=self._out_shape.num_elements(),
+        fc_layer = Layer(
+            input_shape=cur_shape,
+            filters=self._out_shape.num_elements(),
+            kernel_size=cur_shape[:-1],
+            padding='same',
             activation=tf.keras.activations.linear
         )
 
-        layers.append(tf.keras.layers.Flatten())
         layers.append(fc_layer)
         layers.append(tf.keras.layers.Reshape(target_shape=self._out_shape))
 
