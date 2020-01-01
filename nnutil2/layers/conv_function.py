@@ -52,11 +52,6 @@ class ConvFunction(Segment):
 
         cur_shape = self._in_shape
         for sa in interpolate_shape(shape0, shape1, max_depth):
-            if self._residual:
-                activation = tf.keras.activations.linear
-            else:
-                activation = self._layer_activation
-
             conv_layer = Layer(
                 input_shape=cur_shape,
                 filters=sa.filters,
@@ -64,11 +59,8 @@ class ConvFunction(Segment):
                 strides=sa.strides(cur_shape),
                 dilation_rate=sa.dilation_rate(cur_shape),
                 padding='same',
-                activation=activation
-            )
-
-            if self._residual:
-                conv_layer = Residual(layers=[conv_layer], activation=self._layer_activation)
+                activation=self._layer_activation,
+                residual=self._residual)
 
             cur_shape = conv_layer.compute_output_shape(tf.TensorShape([1]) + cur_shape)[1:]
 

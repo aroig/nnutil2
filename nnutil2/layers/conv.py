@@ -27,12 +27,14 @@ class Conv(Layer):
                  residual=False, normalization=None, data_format='channels_last',
                  *args, **kwargs):
         assert input_shape is not None
+        assert mode in ['full', 'depthwise', 'separable']
+        assert data_format in ['channels_first', 'channels_last']
 
         self._in_shape = as_shape(input_shape)
         self._mode = mode
         self._residual = residual
         self._normalization = normalization
-        self._data_format=data_format
+        self._data_format = data_format
 
         Layer = self._layer_class(input_shape, mode)
 
@@ -46,8 +48,9 @@ class Conv(Layer):
         layers = [conv]
 
         if self._normalization is not None:
+            cur_shape = conv.compute_output_shape(tf.TensorShape([1]) + input_shape)[1:]
             norm = Normalization(
-                input_shape=shape2,
+                input_shape=cur_shape,
                 data_format=self._data_format,
                 mode=self._normalization)
 

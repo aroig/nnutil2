@@ -27,6 +27,7 @@ class Bottleneck(Layer):
                  residual=False, normalization=None, data_format='channels_last', **kwargs):
         assert input_shape is not None
         assert filters is not None
+        assert data_format in ['channels_first', 'channels_last']
 
         self._in_shape = as_shape(input_shape)
         self._filters = filters
