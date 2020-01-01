@@ -13,6 +13,9 @@ import numpy as np
 import tensorflow as tf
 
 from .layer import Layer
+from .segment import Segment
+from .residual import Residual
+from .normalization import Normalization
 
 from ..util import as_shape
 
@@ -20,13 +23,40 @@ class Conv(Layer):
     """Convolutional layer wrapper that chooses the right kernel dimension
        based on input shape
     """
-    def __init__(self, input_shape=None, mode='full', *args, **kwargs):
+    def __init__(self, input_shape=None, mode='full', activation=None,
+                 residual=False, normalization=None, data_format='channels_last',
+                 *args, **kwargs):
         assert input_shape is not None
+
         self._in_shape = as_shape(input_shape)
         self._mode = mode
+        self._residual = residual
+        self._normalization = normalization
+        self._data_format=data_format
 
         Layer = self._layer_class(input_shape, mode)
-        self._layer = Layer(*args, input_shape=input_shape, **kwargs)
+
+        conv = Layer(
+            *args,
+            input_shape=input_shape,
+            data_format=data_format,
+            activation=tf.keras.activations.linear,
+            **kwargs)
+
+        layers = [conv]
+
+        if self._normalization is not None:
+            norm = Normalization(
+                input_shape=shape2,
+                data_format=self._data_format,
+                mode=self._normalization)
+
+            layers.append(norm)
+
+        if self._residual:
+            self._conv_layers = Residual(layers=layers, activation=activation)
+        else:
+            self._conv_layers = Segment(layers=layers, activation=activation)
 
         super(Conv, self).__init__()
 
@@ -74,6 +104,9 @@ class Conv(Layer):
         config = {
             'input_shape': self._in_shape,
             'mode': self._mode,
+            'residual': self._residual,
+            'normalization': self._normalization,
+            'data_format': self._data_format,
             'layer': self._layer.get_config()
         }
 
@@ -81,7 +114,7 @@ class Conv(Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, inputs, **kwargs):
-        return self._layer(inputs, **kwargs)
+        return self._conv_layers(inputs, **kwargs)
 
     def compute_output_shape(self, input_shape):
-        return self._layer.compute_output_shape(input_shape)
+        return self._conv_layers.compute_output_shape(input_shape)
