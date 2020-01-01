@@ -16,6 +16,7 @@ from .layer import Layer
 from .conv import Conv
 from .segment import Segment
 from .residual import Residual
+from .normalization import Normalization
 
 from ..util import as_shape
 
@@ -32,6 +33,7 @@ class Bottleneck(Layer):
         self._depth_multiplier = depth_multiplier
         self._residual = residual
         self._normalization = normalization
+        self._data_format=data_format
 
         inner_channels = depth_multiplier * filters
 
@@ -59,21 +61,12 @@ class Bottleneck(Layer):
 
         layers = [conv0, conv1, conv2]
 
-        if data_format == 'channels_first':
-            norm_axis = 1
-        else:
-            norm_axis = -1
-
-        if self._normalization == 'batch':
-            norm = tf.keras.layers.BatchNormalization(
+        if self._normalization is not None:
+            norm = Normalization(
                 input_shape=shape2,
-                axis=norm_axis)
-            layers.append(norm)
+                data_format=self._data_format,
+                mode=self._normalization)
 
-        elif self._normalization == 'layer':
-            norm = tf.keras.layers.LayerNormalization(
-                input_shape=shape2,
-                axis=norm_axis)
             layers.append(norm)
 
         if self._residual:
@@ -89,7 +82,8 @@ class Bottleneck(Layer):
             'filters': self._filters,
             'depth_multiplier': self._depth_multiplier,
             'residual': self._residual,
-            'normalization': self._normalization
+            'normalization': self._normalization,
+            'data_format': self._data_format,
         }
 
         base_config = super(Bottleneck, self).get_config()
