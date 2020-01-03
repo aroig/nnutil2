@@ -18,7 +18,10 @@ import nnutil2 as nnu
 
 
 class ClassificationTensorBoard(TensorBoard):
-    def __init__(self, **kwargs):
+    def __init__(self, model=None, **kwargs):
+        assert model is not None
+        self._model = model
+
         super(ClassificationTensorBoard, self).__init__(**kwargs)
 
     def _common_summaries(self, writer, logs, mode_prefix, prefix, step):
@@ -53,12 +56,23 @@ class ClassificationTensorBoard(TensorBoard):
                     nnu.summary.pr_curve(
                         value,
                         step=step,
-                        name=full_name
-                    )
+                        name=full_name)
+
+    def _layer_summaries(self, writer, logs, mode_prefix, prefix, step):
+        # Layer sizes
+        layer_sizes = []
+
+        for ly in self._model.layers[0].flat_layers:
+            size = sum([w.shape.num_elements() for w in ly.variables])
+            layer_sizes.append(size)
+
+        layer_sizes = tf.constant(layer_sizes, dtype=tf.float32)
+        nnu.summary.distribution(layer_sizes, name="layer/size", step=step)
 
     def _train_summaries(self, writer, logs, prefix, step):
         mode_prefix = ""
         self._common_summaries(writer, logs, mode_prefix, prefix, step)
+        self._layer_summaries(writer, logs, mode_prefix, prefix, step)
 
     def _eval_summaries(self, writer, logs, prefix, step):
         mode_prefix = "val_"
