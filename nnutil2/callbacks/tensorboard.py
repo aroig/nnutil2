@@ -11,6 +11,10 @@
 
 
 import tensorflow as tf
+
+from tensorflow.python.eager import context
+from tensorflow.python.ops import summary_ops_v2
+
 from tensorboard.plugins.hparams import api as hp
 
 class TensorBoard(tf.keras.callbacks.TensorBoard):
@@ -30,14 +34,15 @@ class TensorBoard(tf.keras.callbacks.TensorBoard):
         if logs is None:
             logs = {}
 
-        with tf.summary.record_if(True):
-            train_writer = self._get_writer(self._train_run_name)
-            with train_writer.as_default():
-                self._train_summaries(train_writer, logs, prefix=prefix, step=step)
+        with context.eager_mode():
+            with summary_ops_v2.always_record_summaries():
+                train_writer = self._get_writer(self._train_run_name)
+                with train_writer.as_default():
+                    self._train_summaries(train_writer, logs, prefix=prefix, step=step)
 
-            eval_writer = self._get_writer(self._validation_run_name)
-            with eval_writer.as_default():
-                self._eval_summaries(eval_writer, logs, prefix=prefix, step=step)
+                eval_writer = self._get_writer(self._validation_run_name)
+                with eval_writer.as_default():
+                    self._eval_summaries(eval_writer, logs, prefix=prefix, step=step)
 
     def _common_summaries(self, writer, logs, mode_prefix, prefix, step):
         # scalars
