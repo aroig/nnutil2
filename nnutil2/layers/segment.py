@@ -56,5 +56,19 @@ class Segment(network.Network):
         return shape
 
     @property
+    def flat_layers(self):
+        layers = []
+
+        def add_layers(ly):
+            if isinstance(ly, Segment):
+                for ly2 in ly.layers:
+                    add_layers(ly2)
+            else:
+                layers.append(ly)
+
+        add_layers(self)
+        return layers
+
+    @property
     def states(self):
         return self._segment_states
