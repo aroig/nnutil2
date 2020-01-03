@@ -12,3 +12,5 @@
 from .pr_curve import *
 from .distribution import *
 from .confusion_matrix import *
+from .layer_sizes import *
+from .layer_gradients import *

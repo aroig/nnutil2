@@ -66,7 +66,6 @@ class ClassificationExperiment(Experiment):
             # sudo bash -c "echo /usr/local/cuda-10.0/extras/CUPTI/lib64 > /etc/ld.so.conf.d/cupti-10-0.conf"
             # sudo ldconfig
             nnu.callbacks.ClassificationTensorBoard(
-                model=self._model,
                 run_id=self.run_id,
                 log_dir=self.log_path,
                 profile_batch=2
