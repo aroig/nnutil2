@@ -15,25 +15,25 @@ import numpy as np
 
 from tensorboard.plugins.histogram.metadata import create_summary_metadata
 
-def distribution(name, dist):
-    dist = dist / tf.reduce_sum(dist)
-
-    def entry(i, x):
-        return tf.stack([
-            tf.constant(i-0.5, shape=(), dtype=tf.float32),
-            tf.constant(i+0.5, shape=(), dtype=tf.float32),
-            tf.cast(x, dtype=tf.float32)
-        ])
-
-    dist_entries = tf.stack([entry(i, p) for i, p in enumerate(tf.unstack(dist))])
-
-    metadata = create_summary_metadata(
+def distribution(dist, name='distribution', step=None):
+    summary_metadata = create_summary_metadata(
         display_name=name,
         description=None)
 
-    dist_summary = tf.summary.tensor_summary(
-        name,
-        dist_entries,
-        summary_metadata=metadata)
+    with tf.summary.experimental.summary_scope(name, 'distribution', values=[dist]) as (tag, _):
+        dist_norm = dist / tf.reduce_sum(dist)
 
-    return dist_summary
+        def entry(i, x):
+            return tf.stack([
+                tf.constant(i-0.5, shape=(), dtype=tf.float32),
+                tf.constant(i+0.5, shape=(), dtype=tf.float32),
+                tf.cast(x, dtype=tf.float32)
+            ])
+
+        dist_entries = tf.stack([entry(i, p) for i, p in enumerate(tf.unstack(dist_norm))])
+
+        return tf.summary.write(
+            tag=tag,
+            tensor=dist_entries,
+            step=step,
+            metadata=summary_metadata)
