@@ -26,7 +26,7 @@ def pr_curve(data, name="pr_curve", step=None, description=None):
         num_thresholds=num_thresholds
     )
 
-    with tf.summary.experimental.summary_scope(name, 'pr_curve', values=[data, step]) as (tag, _):
+    with tf.summary.experimental.summary_scope(name, 'pr_curve', values=[data, step]) as (tag, scope):
         true_pos = tf.cast(data[1, 1, :], dtype=tf.float32)
         false_pos = tf.cast(data[0, 1, :], dtype=tf.float32)
 
@@ -56,4 +56,5 @@ def pr_curve(data, name="pr_curve", step=None, description=None):
             tag=tag,
             tensor=combined_data,
             step=step,
-            metadata=summary_metadata)
+            metadata=summary_metadata,
+            name=scope)

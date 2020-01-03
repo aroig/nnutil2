@@ -15,14 +15,14 @@ import numpy as np
 
 from tensorboard.plugins.histogram.metadata import create_summary_metadata
 
-def distribution(dist, name='distribution', step=None):
+def distribution(dist, name='distribution', step=None, description=None):
+    assert dist.shape.rank == 1
+
     summary_metadata = create_summary_metadata(
         display_name=name,
-        description=None)
+        description=description)
 
-    with tf.summary.experimental.summary_scope(name, 'distribution', values=[dist]) as (tag, _):
-        dist_norm = dist / tf.reduce_sum(dist)
-
+    with tf.summary.experimental.summary_scope(name, 'distribution', values=[dist]) as (tag, scope):
         def entry(i, x):
             return tf.stack([
                 tf.constant(i-0.5, shape=(), dtype=tf.float32),
@@ -30,10 +30,11 @@ def distribution(dist, name='distribution', step=None):
                 tf.cast(x, dtype=tf.float32)
             ])
 
-        dist_entries = tf.stack([entry(i, p) for i, p in enumerate(tf.unstack(dist_norm))])
+        dist_entries = tf.stack([entry(i, p) for i, p in enumerate(tf.unstack(dist))])
 
         return tf.summary.write(
             tag=tag,
             tensor=dist_entries,
             step=step,
-            metadata=summary_metadata)
+            metadata=summary_metadata,
+            name=scope)
