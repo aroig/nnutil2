@@ -25,12 +25,12 @@ class LayersConvFunction(tf.test.TestCase):
             func = nnu.layers.ConvFunction(
                 input_shape=shape,
                 depth=4,
-                output_shape=(2,),
+                output_shape=(1, 2),
                 activation=tf.keras.activations.relu
             )
 
             y = func(x)
-            self.assertEqual(tf.TensorShape([3, 2]), y.shape)
+            self.assertEqual(tf.TensorShape([3, 1, 2]), y.shape)
             self.assertEqual(4, func.depth)
 
     def test_layer_shape_2D(self):
@@ -40,12 +40,12 @@ class LayersConvFunction(tf.test.TestCase):
             func = nnu.layers.ConvFunction(
                 input_shape=shape,
                 depth=4,
-                output_shape=(2,),
+                output_shape=(1, 1, 2),
                 activation=tf.keras.activations.relu
             )
 
             y = func(x)
-            self.assertEqual(tf.TensorShape([3, 2]), y.shape)
+            self.assertEqual(tf.TensorShape([3, 1, 1, 2]), y.shape)
             self.assertEqual(4, func.depth)
 
     def test_layer_shape_3D(self):
@@ -55,12 +55,12 @@ class LayersConvFunction(tf.test.TestCase):
             func = nnu.layers.ConvFunction(
                 input_shape=shape,
                 depth=4,
-                output_shape=(2,),
+                output_shape=(1, 1, 1, 2),
                 activation=tf.keras.activations.relu
             )
 
             y = func(x)
-            self.assertEqual(tf.TensorShape([3, 2]), y.shape)
+            self.assertEqual(tf.TensorShape([3, 1, 1, 1, 2]), y.shape)
             self.assertEqual(4, func.depth)
 
 

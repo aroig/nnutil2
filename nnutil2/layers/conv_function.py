@@ -20,15 +20,19 @@ from ..util import as_shape, interpolate_shape
 
 class ConvFunction(Segment):
     """A function defined by a segment of convolutional nets"""
-    def __init__(self, input_shape=None, depth=None, output_shape=(1,),
+    def __init__(self, input_shape=None, depth=None, output_shape=None,
                  residual=False, activation=None, layer_class=None,
                  **kwargs):
         assert input_shape is not None
+        assert output_shape is not None
 
         layers = []
 
         self._in_shape = as_shape(input_shape)
         self._out_shape = as_shape(output_shape)
+
+        assert self._in_shape.rank == self._out_shape.rank
+
         self._layer_activation = tf.keras.activations.get(activation)
         self._residual = residual
 
@@ -76,8 +80,11 @@ class ConvFunction(Segment):
             activation=tf.keras.activations.linear
         )
 
+        cur_shape = fc_layer.compute_output_shape(tf.TensorShape([1]) + cur_shape)[1:]
+
         layers.append(fc_layer)
-        layers.append(tf.keras.layers.Reshape(target_shape=self._out_shape))
+
+        assert cur_shape == self._out_shape
 
         super(ConvFunction, self).__init__(layers=layers, **kwargs)
 
