@@ -17,7 +17,7 @@ from .segment import Segment
 from .residual import Residual
 from .normalization import Normalization
 
-from ..util import as_shape
+from ..util import as_shape, infer_layer_shape
 
 class Conv(Layer):
     """Convolutional layer wrapper that chooses the right kernel dimension
@@ -48,7 +48,7 @@ class Conv(Layer):
         layers = [conv]
 
         if self._normalization is not None:
-            cur_shape = conv.compute_output_shape(tf.TensorShape([1]) + input_shape)[1:]
+            cur_shape = infer_layer_shape(conv, input_shape)
             norm = Normalization(
                 input_shape=cur_shape,
                 data_format=self._data_format,

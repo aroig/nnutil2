@@ -73,6 +73,12 @@ def batch_shape(shape, inner_shape):
     assert shape[batch_rank:].is_compatible_with(inner_shape)
     return shape[0:batch_rank]
 
+def infer_layer_shape(layer, input_shape, batch_rank=1):
+    input_shape = as_shape(input_shape)
+    extended_shape = tf.TensorShape(batch_rank * [1]) + input_shape
+    output_shape = layer.compute_output_shape(extended_shape)
+    return output_shape[batch_rank:]
+
 def is_inner_compatible_with(shape0, shape1):
     """Check whether shape0 and shape1 are compatible on the inner dimensions.
        The higher rank must be compatible with the lower rank shape as tail.

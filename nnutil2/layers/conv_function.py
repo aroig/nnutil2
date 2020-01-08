@@ -16,7 +16,7 @@ from .residual import Residual
 from .segment import Segment
 from .conv import Conv
 
-from ..util import as_shape, interpolate_shape
+from ..util import as_shape, interpolate_shape, infer_layer_shape
 
 class ConvFunction(Segment):
     """A function defined by a segment of convolutional nets"""
@@ -66,7 +66,7 @@ class ConvFunction(Segment):
                 activation=self._layer_activation,
                 residual=self._residual)
 
-            cur_shape = conv_layer.compute_output_shape(tf.TensorShape([1]) + cur_shape)[1:]
+            cur_shape = infer_layer_shape(conv_layer, cur_shape)
 
             layers.append(conv_layer)
 
@@ -80,7 +80,7 @@ class ConvFunction(Segment):
             activation=tf.keras.activations.linear
         )
 
-        cur_shape = fc_layer.compute_output_shape(tf.TensorShape([1]) + cur_shape)[1:]
+        cur_shape = infer_layer_shape(fc_layer, cur_shape)
 
         layers.append(fc_layer)
 
