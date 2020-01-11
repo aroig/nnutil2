@@ -10,9 +10,13 @@
 # license. See the LICENSE file for details.
 
 
-from .jacobian import *
-from .reduce_inner_sum import *
-from .trace_mc import *
-from .logdet_mc import *
-from .approximate_identity import approximate_identity
-from .dotprod import *
+import tensorflow as tf
+
+def dotprod(x: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+    """Produces dot product of last dimensions
+    """
+    assert x.shape == y.shape
+    x_mat = tf.expand_dims(x, axis=-2)
+    xy = tf.linalg.matvec(x_mat, y)
+    xy = tf.squeeze(xy, axis=-1)
+    return xy
