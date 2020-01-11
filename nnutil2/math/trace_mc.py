@@ -14,7 +14,7 @@ import tensorflow as tf
 
 from ..util import as_shape
 
-def identity_mc(shape=None, batch_rank: int = 1, seed=None):
+def identity_mc(shape=None, batch_rank: int = 1, seed=None) -> tf.Tensor:
     """
        Produces a sample z such that
 
@@ -25,8 +25,7 @@ def identity_mc(shape=None, batch_rank: int = 1, seed=None):
     z = tf.random.normal(shape=shape, seed=seed)
     return z
 
-
-def trace_mc(f, shape=None, batch_rank: int = 1, num_samples: int = 1, seed=None):
+def trace_mc(f, shape=None, batch_rank: int = 1, num_samples: int = 1, seed=None) -> tf.Tensor:
     """Compute an unbiased Monte-Carlo approximation of the trace of A
 
        A is given implicitly by f(v) = Av
