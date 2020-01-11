@@ -39,7 +39,7 @@ class MathTraceMC(tf.test.TestCase):
             approx_id = (1. / N) * tf.linalg.matmul(z, z, transpose_a=True)
             self.assertAllClose(approx_id, identity, atol=2e-1)
 
-    def test_math_trace_mc(self):
+    def test_math_trace_mc_1(self):
         with self.cached_session():
             A = tf.constant([[[1, 2, 3], [2, 3, 4], [3, 4, 5]]], dtype=tf.float32)
 
@@ -47,6 +47,18 @@ class MathTraceMC(tf.test.TestCase):
                 return tf.linalg.matvec(A, x)
 
             tr = nnu.math.trace_mc(f, shape=(1024, 3), batch_rank=1)
+            tr = tf.reduce_mean(tr, axis=0)
+            self.assertEqual(tr.shape, tf.TensorShape([]))
+            self.assertAllClose(tf.constant(9, dtype=tf.float32), tr, atol=2e-1)
+
+    def test_math_trace_mc_2(self):
+        with self.cached_session():
+            A = tf.constant([[[1, 2, 3], [2, 3, 4], [3, 4, 5]]], dtype=tf.float32)
+
+            def f(x):
+                return tf.linalg.matvec(A, x)
+
+            tr = nnu.math.trace_mc(f, shape=(64, 3), batch_rank=1, num_samples=16)
             tr = tf.reduce_mean(tr, axis=0)
             self.assertEqual(tr.shape, tf.TensorShape([]))
             self.assertAllClose(tf.constant(9, dtype=tf.float32), tr, atol=2e-1)

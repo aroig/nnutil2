@@ -26,7 +26,7 @@ def identity_mc(shape=None, batch_rank: int = 1, seed=None):
     return z
 
 
-def trace_mc(f, shape=None, batch_rank: int = 1, seed=None):
+def trace_mc(f, shape=None, batch_rank: int = 1, num_samples: int = 1, seed=None):
     """Compute an unbiased Monte-Carlo approximation of the trace of A
 
        A is given implicitly by f(v) = Av
@@ -39,16 +39,18 @@ def trace_mc(f, shape=None, batch_rank: int = 1, seed=None):
 
     """
     assert shape is not None
+
     shape = as_shape(shape)
     assert shape.rank > batch_rank
 
     batch_shape = shape[:batch_rank]
     inner_shape = shape[batch_rank:]
+    sample_shape = tf.TensorShape([num_samples]) + batch_shape + inner_shape
 
-    z = identity_mc(shape=shape, batch_rank=batch_rank, seed=seed)
-    fz = f(z)
+    z = identity_mc(shape=sample_shape, batch_rank=batch_rank + 1, seed=seed)
+    fz = tf.map_fn(f, z)
 
-    axis = list(range(batch_rank, shape.rank))
-    tr = tf.reduce_sum(z * fz, axis=axis)
+    axis = [0] + list(range(batch_rank+1, shape.rank+1))
+    tr = (1. / num_samples) * tf.reduce_sum(z * fz, axis=axis)
 
     return tr
