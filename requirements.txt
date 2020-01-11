@@ -1,7 +1,7 @@
 coverage
 flake8
-tensorboard==2.0
-tensorflow-gpu==2.0.0
+tensorboard==2.1
+tensorflow==2.1
 tensorflow-probability
 numpy
 pandas
