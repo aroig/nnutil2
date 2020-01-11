@@ -44,7 +44,8 @@ class MathTraceMC(tf.test.TestCase):
             A = tf.constant([[[1, 2, 3], [2, 3, 4], [3, 4, 5]]], dtype=tf.float32)
 
             def f(x):
-                return tf.linalg.matvec(A, x)
+                Ax = tf.linalg.matvec(A, x)
+                return nnu.math.dotprod(x, Ax)
 
             tr = nnu.math.trace_mc(f, shape=(1024, 3), batch_rank=1)
             tr = tf.reduce_mean(tr, axis=0)
@@ -56,7 +57,8 @@ class MathTraceMC(tf.test.TestCase):
             A = tf.constant([[[1, 2, 3], [2, 3, 4], [3, 4, 5]]], dtype=tf.float32)
 
             def f(x):
-                return tf.linalg.matvec(A, x)
+                Ax = tf.linalg.matvec(A, x)
+                return nnu.math.dotprod(x, Ax)
 
             tr = nnu.math.trace_mc(f, shape=(64, 3), batch_rank=1, num_samples=16)
             tr = tf.reduce_mean(tr, axis=0)
