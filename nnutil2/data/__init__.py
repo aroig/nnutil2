@@ -16,3 +16,4 @@ from .attach_label import *
 from .tfrecord_cache import *
 from .tfrecord import *
 from .filter import *
+from .random_normal import *
