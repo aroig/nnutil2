@@ -12,11 +12,12 @@
 
 import tensorflow as tf
 
-def dotprod(x: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+def dotprod(x: tf.Tensor, y: tf.Tensor, keepdims: bool = False) -> tf.Tensor:
     """Produces dot product of last dimensions
     """
     assert x.shape == y.shape
     x_mat = tf.expand_dims(x, axis=-2)
     xy = tf.linalg.matvec(x_mat, y)
-    xy = tf.squeeze(xy, axis=-1)
+    if keepdims:
+        xy = tf.squeeze(xy, axis=-1)
     return xy
