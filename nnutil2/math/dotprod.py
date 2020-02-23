@@ -16,8 +16,11 @@ def dotprod(x: tf.Tensor, y: tf.Tensor, keepdims: bool = False) -> tf.Tensor:
     """Produces dot product of last dimensions
     """
     assert x.shape == y.shape
+
     x_mat = tf.expand_dims(x, axis=-2)
     xy = tf.linalg.matvec(x_mat, y)
-    if keepdims:
+
+    if not keepdims:
         xy = tf.squeeze(xy, axis=-1)
+
     return xy
