@@ -26,7 +26,7 @@ class LinalgSymmetricLanczos(tf.test.TestCase):
 
         shape = (batch_size, N, N)
 
-        A = nnu.linalg.symmetrize(tf.random.normal(shape=shape), axis=[-1, -2])
+        A = nnu.linalg.symmetrize(tf.random.normal(shape=shape))
 
         T, V = nnu.linalg.symmetric_lanczos(
             lambda v: tf.linalg.matvec(A, v),

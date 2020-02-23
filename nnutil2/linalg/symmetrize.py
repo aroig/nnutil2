@@ -34,7 +34,7 @@ def permutation_sign(perm):
     else:
         return -1
 
-def symmetrize(x, axis):
+def symmetrize(x, axis=[-2, -1]):
     assert x.shape.rank >= len(axis)
 
     dtype = x.dtype
@@ -56,7 +56,7 @@ def symmetrize(x, axis):
     return y / math.factorial(len(axis))
 
 
-def antisymmetrize(x, axis):
+def antisymmetrize(x, axis=[-2, -1]):
     assert x.shape.rank >= len(axis)
 
     dtype = x.dtype
