@@ -23,6 +23,9 @@ from .data_parse_json import *
 from .data_merge import *
 from .util_shape import *
 from .util_interpolate_shape import *
-from .math_trace_mc import *
-from .math_dotprod import *
+from .linalg_trace_mc import *
+from .linalg_dotprod import *
 from .linalg_orthogonalize import *
+from .linalg_symmetric_lanczos import *
+from .linalg_generalized_trace import *
+from .linalg_symmetrize import *
