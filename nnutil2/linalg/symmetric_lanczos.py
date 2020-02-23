@@ -11,7 +11,7 @@
 
 import tensorflow as tf
 
-from ..math import dotprod
+from .dotprod import dotprod
 from .orthogonalize import orthogonalize
 
 def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> tf.Tensor:

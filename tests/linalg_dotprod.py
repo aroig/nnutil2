@@ -16,7 +16,7 @@ import tensorflow as tf
 
 import nnutil2 as nnu
 
-class MathDotprod(tf.test.TestCase):
+class LinalgDotprod(tf.test.TestCase):
     def setUp(self):
         pass
 
@@ -24,8 +24,11 @@ class MathDotprod(tf.test.TestCase):
         x = tf.constant([[1, 2, 3], [0, 1, 0]], dtype=tf.float32)
         y = tf.constant([[1, 1, 1], [0, 0, 1]], dtype=tf.float32)
 
-        xy0 = nnu.math.dotprod(x, y)
+        xy0 = nnu.linalg.dotprod(x, y)
         xy1 = tf.constant([6, 0], dtype=tf.float32)
 
         with self.cached_session():
             self.assertAllClose(xy1, xy0)
+
+if __name__ == '__main__':
+    tf.test.main()

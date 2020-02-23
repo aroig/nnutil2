@@ -11,3 +11,5 @@
 
 from .orthogonalize import *
 from .symmetric_lanczos import *
+from .trace_mc import *
+from .dotprod import *
