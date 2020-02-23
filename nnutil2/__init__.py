@@ -27,3 +27,4 @@ from . import image
 from . import visualization
 from . import io
 from . import math
+from . import random
