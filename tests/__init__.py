@@ -25,3 +25,4 @@ from .util_shape import *
 from .util_interpolate_shape import *
 from .math_trace_mc import *
 from .math_dotprod import *
+from .linalg_orthogonalize import *

@@ -28,3 +28,4 @@ from . import visualization
 from . import io
 from . import math
 from . import random
+from . import linalg
