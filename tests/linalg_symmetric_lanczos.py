@@ -11,7 +11,6 @@
 
 import unittest
 
-import numpy as np
 import tensorflow as tf
 
 import nnutil2 as nnu
@@ -27,11 +26,10 @@ class LinalgSymmetricLanczos(tf.test.TestCase):
 
         shape = (batch_size, N, N)
 
-        A = tf.random.normal(shape=shape)
-        Asym = A + tf.linalg.matrix_transpose(A)
+        A = nnu.linalg.symmetrize(tf.random.normal(shape=shape), axis=[-1, -2])
 
         T, V = nnu.linalg.symmetric_lanczos(
-            lambda v: tf.linalg.matvec(Asym, v),
+            lambda v: tf.linalg.matvec(A, v),
             lambda : nnu.random.uniform_unit_vector(shape=shape[:-1]),
             size=M,
             orthogonalize_step=True
@@ -42,7 +40,7 @@ class LinalgSymmetricLanczos(tf.test.TestCase):
         identity = tf.eye(M, M, batch_shape=(batch_size,))
         self.assertAllClose(identity, Vt @ V, atol=1e-5)
 
-        self.assertAllClose(T, Vt @ Asym @ V, atol=1e-5)
+        self.assertAllClose(T, Vt @ A @ V, atol=1e-5)
 
 if __name__ == '__main__':
     tf.test.main()
