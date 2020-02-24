@@ -41,6 +41,8 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
     batch_shape = v_shape[:-1]
 
     assert size >= 2
+    alpha_shape = batch_shape + (size,)
+    beta_shape = batch_shape + (size,)
     T_shape = batch_shape + (size, size)
     V_shape = batch_shape + (N, size)
 
@@ -65,14 +67,14 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
         v0,
     )
 
-    shape_invariants = [
+    shape_invariants = (
         i0.shape,
         batch_shape + tf.TensorShape([None]),
         batch_shape + tf.TensorShape([None]),
         batch_shape + tf.TensorShape([N, None]),
         batch_shape + tf.TensorShape([N]),
         batch_shape + tf.TensorShape([N]),
-    ]
+    )
 
     def lanczos_cond(i, alpha, beta, V, w, v):
         return i < size-1
@@ -106,6 +108,10 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
         state0,
         shape_invariants=shape_invariants
     )
+
+    alpha = tf.reshape(alpha, shape=alpha_shape)
+    beta = tf.reshape(beta, shape=beta_shape)
+    V = tf.reshape(V, shape=V_shape)
 
     T_alpha = tf.linalg.diag(alpha)
     T_beta = tf.roll(tf.linalg.diag(beta), shift=-1, axis=-1)
