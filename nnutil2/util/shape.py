@@ -33,10 +33,21 @@ def normalize_axis(shape, axis):
     if axis is None:
         return list(range(0, shape.rank))
 
-    axis = [d if d >= 0 else rank + d for d in axis]
-    assert max(axis) < rank
+    def normalize(d):
+        return d if d >= 0 else rank + d
 
-    return axis
+    if isinstance(axis, int):
+        axis = normalize(axis)
+        assert axis < rank
+        return axis
+
+    elif isinstance(axis, list):
+        axis = [normalize(d) for d in axis]
+        assert max(axis) < rank
+        return axis
+
+    else:
+        raise Exception("Unhandled axis type: {}".format(type(axis)))
 
 def complementary_axis(shape, axis):
     shape = as_shape(shape)
@@ -45,6 +56,9 @@ def complementary_axis(shape, axis):
     assert rank is not None
 
     axis = normalize_axis(shape, axis)
+    if isinstance(axis, int):
+        axis = [axis]
+
     axis_c = [i for i in range(0, rank) if i not in set(axis)]
     return axis_c
 
