@@ -9,17 +9,18 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+from typing import List
 
 from tensorflow.python.keras.engine import network
 import tensorflow as tf
 
 from ..util import kwargs_for
+from .layer import Layer
 
 class Segment(network.Network):
     """A sequential collection of layers"""
-    def __init__(self, layers=None, activation=None, **kwargs):
+    def __init__(self, layers: List[Layer] = [], activation=None, **kwargs):
         super(Segment, self).__init__(**kwargs)
-        assert isinstance(layers, list)
 
         self._segment_layers = layers
         self._segment_activation = tf.keras.activations.get(activation)
