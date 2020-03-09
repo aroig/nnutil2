@@ -19,14 +19,12 @@ from .layer import Layer
 
 class PipelinedSegment(network.Network):
     """A sequential collection of layers"""
-    def __init__(self, layers: List[Layer]=[], activation=None, shape=None, dtype=None, **kwargs):
+    def __init__(self, layers: List[Layer]=[], activation=None, shape=None, dtype=tf.float32, **kwargs):
         super(PipelinedSegment, self).__init__(**kwargs)
 
         assert shape is not None
-        assert dtype is not None
 
-        nstages = len(layers)
-        self._state_shape = (nstages,) + as_shape(shape)
+        self._state_shape = as_shape(shape)
         self._state_dtype = dtype
         self._segment_layers = layers
         self._segment_activation = tf.keras.activations.get(activation)
@@ -46,12 +44,12 @@ class PipelinedSegment(network.Network):
         return dict(list(base_config.items()) + list(config.items()))
 
     def build(self, input_shape):
-        nstages = self._state_shape[0]
-        assert input_shape == self._state_shape[1:]
+        nstages = len(self._segment_layers)
+        assert input_shape == self._state_shape
 
         self._pipeline_state = self.add_weight(
             "state",
-            shape=self._state_shape,
+            shape=(nstages,) + self._state_shape,
             dtype=self._state_dtype,
             trainable=False,
             initializer=tf.keras.initializers.zeros(),
