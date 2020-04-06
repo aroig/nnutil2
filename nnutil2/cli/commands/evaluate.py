@@ -41,4 +41,4 @@ class Evaluate(Command):
         )
 
         metrics = exp.evaluate()
-        print(json.dumps(metrics, indent=4, sort_keys=True))
+        print(json.dumps(metrics, indent=4, sort_keys=True, cls=util.NumpyJSONEncoder))

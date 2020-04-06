@@ -13,3 +13,4 @@ from .tensorboard import *
 from .shape import *
 from .interpolate_shape import *
 from .kwargs_for import *
+from .numpy_json_encoder import *
