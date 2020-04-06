@@ -180,11 +180,17 @@ class Experiment:
         if eval_dataset is not None:
             eval_dataset = eval_dataset.batch(batch_size)
 
-        return self.model.evaluate(
+        metrics = self.model.evaluate(
             eval_dataset,
             steps=self._validation_steps,
             callbacks=self.eval_callbacks(),
             **kwargs)
+
+        metrics_dict = {}
+        for name, value in zip(self.model.metrics_names, metrics):
+            metrics_dict[name] = value
+
+        return metrics_dict
 
     def predict(self, x, **kwargs):
         return self.model.predict(x, **kwargs)
