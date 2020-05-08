@@ -14,7 +14,7 @@ import tensorflow as tf
 import numpy as np
 
 def is_tensor(x):
-    return any([isinstance(x, tf.Tensor), isinstance(x, tf.SparseTensor), isinstance(x, tf.RaggedTensor)])
+    return isinstance(x, (tf.Tensor, tf.SparseTensor, tf.RaggedTensor))
 
 
 def as_tensor(structure):
@@ -33,7 +33,7 @@ def as_tensor(structure):
     elif isinstance(structure, np.ndarray):
         return tf.constant(structure, shape=structure.shape, dtype=tf.dtype.as_dtype(structure.dtype))
 
-    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
+    elif isinstance(structure, (int, np.integer, np.signedinteger, float, np.floating, str, bytes)):
         return tf.constant(structure, shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
     else:
@@ -50,7 +50,7 @@ def as_numpy(structure):
     elif isinstance(structure, np.ndarray):
         return structure
 
-    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64, float, np.float32, np.float64, str, bytes]]):
+    elif isinstance(structure, (int, np.integer, np.signedinteger, float, np.floating, str, bytes)):
         dtype = tf.dtype.as_dtype(type(structure)).as_numpy_dtype()
         return np.array(structure, shape=(), dtype=dtype)
 

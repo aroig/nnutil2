@@ -25,10 +25,10 @@ def as_feature(structure):
     elif isinstance(structure, np.ndarray):
         flat = structure.flatten().tolist()
 
-        if any([structure.dtype == dt for dt in [int, np.int32, np.int64]]):
+        if isinstance(structure.dtype, (int, np.integer, np.signedinteger)):
             return tf.train.Feature(int64_list=tf.train.Int64List(value=flat))
 
-        elif any([structure.dtype == dt for dt in [float, np.float32, np.float64]]):
+        elif isinstance(structure.dtype, (int, np.floating)):
             return tf.train.Feature(float_list=tf.train.FloatList(value=flat))
 
         else:
@@ -40,14 +40,14 @@ def as_feature(structure):
     elif isinstance(structure, str):
         return tf.train.Feature(bytes_list=tf.train.BytesList(value=[structure.encode()]))
 
-    elif any([isinstance(structure, c) for c in [float, np.float32, np.float64]]):
+    elif isinstance(structure.dtype, (int, np.floating)):
         return tf.train.Feature(float_list=tf.train.FloatList(value=[structure]))
 
-    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64]]):
+    elif isinstance(structure.dtype, (int, np.integer, np.signedinteger)):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[structure]))
 
-    elif any([isinstance(structure, c) for c in [tf.data.experimental.TensorStructure,
-                                                 tf.data.experimental.SparseTensorStructure]]):
+    elif isinstance(structure, (tf.data.experimental.TensorStructure,
+                                tf.data.experimental.SparseTensorStructure)):
         return as_feature(as_tensor_spec(structure))
 
     else:
@@ -84,17 +84,17 @@ def as_feature_spec(structure):
     elif isinstance(structure, np.ndarray):
         return tf.io.FixedLenFeature(shape=structure.shape, dtype=tf.dtype.as_dtype(structure.dtype))
 
-    elif any([isinstance(structure, c) for c in [int, np.int32, np.int64]]):
+    elif isinstance(structure, (int, np.integer, np.signedinteger)):
         return tf.io.FixedLenFeature(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif any([isinstance(structure, c) for c in [float, np.float32, np.float64]]):
+    elif isinstance(structure, (float, np.floating)):
         return tf.io.FixedLenFeature(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif any([isinstance(structure, c) for c in [str, bytes]]):
+    elif isinstance(structure, (str, bytes)):
         return tf.io.FixedLenFeature(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif any([isinstance(structure, c) for c in [tf.data.experimental.TensorStructure,
-                                                 tf.data.experimental.SparseTensorStructure]]):
+    elif isinstance(structure, (tf.data.experimental.TensorStructure,
+                                tf.data.experimental.SparseTensorStructure)):
         return as_feature_spec(as_tensor_spec(structure))
 
     else:
