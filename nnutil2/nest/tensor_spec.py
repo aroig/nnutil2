@@ -79,18 +79,15 @@ def python_to_tensor_spec(tensor_spec):
 
 
 def same_tensor_spec(ts0, ts1):
-    if tf.nest.is_nested(ts0) and tf.nest.is_nested(ts1):
-        try:
-            tf.nest.assert_same_structure(ts0, ts1)
-        except ValueError:
-            return False
+    ts0_spec = as_tensor_spec(ts0)
+    ts1_spec = as_tensor_spec(ts1)
 
-        ts0_flat = tf.nest.flatten(ts0)
-        ts1_flat = tf.nest.flatten(ts1)
+    try:
+        tf.nest.assert_same_structure(ts0_spec, ts1_spec)
+    except ValueError:
+        return False
 
-        return all([same_tensor_spec(x0, x1) for x0, x1 in zip(ts0_flat, ts1_flat)])
+    ts0_flat = tf.nest.flatten(ts0_spec)
+    ts1_flat = tf.nest.flatten(ts1_spec)
 
-    elif isinstance(ts0, tf.TensorSpec) and isinstance(ts1, tf.TensorSpec):
-        return ts0 == ts1 and ts0.name == ts1.name
-
-    return False
+    return all([ x0 == x1 and x0.name == x1.name for x0, x1 in zip(ts0_flat, ts1_flat)])
