@@ -23,7 +23,7 @@ class LayersPipelinedSegment(tf.test.TestCase):
         stage1 = tf.keras.layers.Lambda(lambda x: 2*x)
         shape=(8,)
 
-        segment = nnu.layers.PipelinedSegment(layers=[stage0, stage1], shape=shape, dtype=tf.float32)
+        segment = nnu.layers.PipelinedSegment(layers=[stage0, stage1], dtype=tf.float32)
         x0 = tf.random.normal(shape=shape, dtype=tf.float32)
         x1 = tf.random.normal(shape=shape, dtype=tf.float32)
 
@@ -31,15 +31,15 @@ class LayersPipelinedSegment(tf.test.TestCase):
         y1 = segment(x1)
 
         self.assertAllClose(y1, 2 * x0)
-        self.assertAllClose(segment.input_state[0,:], segment.output_state[0,:])
-        self.assertAllClose(2 * segment.input_state[1,:], segment.output_state[1,:])
+        self.assertAllClose(segment.input_pipeline[0,:], segment.output_pipeline[0,:])
+        self.assertAllClose(2 * segment.input_pipeline[1,:], segment.output_pipeline[1,:])
 
     def test_layers_pipelined_segment_2(self):
         stage0 = tf.keras.layers.Dense(8)
         stage1 = tf.keras.layers.Dense(8)
         shape = (8,)
 
-        segment = nnu.layers.PipelinedSegment(layers=[stage0, stage1], shape=shape, dtype=tf.float32)
+        segment = nnu.layers.PipelinedSegment(layers=[stage0, stage1], dtype=tf.float32)
         x0 = tf.random.normal(shape=shape, dtype=tf.float32)
 
         y0 = segment(x0)

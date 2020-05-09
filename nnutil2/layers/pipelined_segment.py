@@ -19,15 +19,13 @@ from .layer import Layer
 
 class PipelinedSegment(network.Network):
     """A sequential collection of layers"""
-    def __init__(self, layers: List[Layer]=[], activation=None, shape=None, dtype=tf.float32, **kwargs):
+    def __init__(self, layers: List[Layer]=[], activation=None, dtype=tf.float32, **kwargs):
         super(PipelinedSegment, self).__init__(**kwargs)
 
-        assert shape is not None
-
-        self._state_shape = as_shape(shape)
-        self._state_dtype = dtype
         self._segment_layers = layers
         self._segment_activation = tf.keras.activations.get(activation)
+
+        self._state_dtype = dtype
 
         self._input_state = None
         self._output_state = None
@@ -36,8 +34,6 @@ class PipelinedSegment(network.Network):
         config = {
             'layers': [ly.get_config() for ly in self._layers],
             'activation': self._segment_activation,
-            'shape': self._state_shape,
-            'dtype': self._state_dtype,
         }
 
         base_config = super(PipelinedSegment, self).get_config()
@@ -45,28 +41,26 @@ class PipelinedSegment(network.Network):
 
     def build(self, input_shape):
         nstages = len(self._segment_layers)
-        assert input_shape == self._state_shape
 
-        self._pipeline_state = self.add_weight(
-            "state",
-            shape=(nstages,) + self._state_shape,
-            dtype=self._state_dtype,
-            trainable=False,
-            initializer=tf.keras.initializers.zeros(),
-        )
+        self._state_shape = input_shape
+
+        def _add_weight(shape):
+            weight = self.add_weight(
+                "state",
+                shape=(nstages,) + shape,
+                dtype = self._state_dtype,
+                trainable=False,
+                initializer=tf.keras.initializers.zeros(),
+            )
+
+            return weight
+
+        self._pipeline_state = tf.nest.map_structure(_add_weight, self._state_shape)
 
     def call(self, inputs, **kwargs):
         nstages = len(self._segment_layers)
 
-        in_state = tf.concat([
-            tf.expand_dims(inputs, axis=0),
-            self._pipeline_state[:-1,...]
-        ], axis=0)
-
-        self._input_state = in_state
-
-        in_state_un = tf.split(in_state, nstages, axis=0)
-        assert len(in_state_un) == nstages
+        # TODO: assert compatible
 
         def apply_layer(l, x):
             layer_kwargs = kwargs_for(kwargs, l.call)
@@ -77,15 +71,38 @@ class PipelinedSegment(network.Network):
 
             return y
 
-        out_state_un = [apply_layer(l, x) for l, x in zip(self._segment_layers, in_state_un)]
-        out_state = tf.concat(out_state_un, axis=0)
-        out_state = self._pipeline_state.assign(out_state)
-        self._output_state = out_state
+        flat_pipeline_state = tf.nest.flatten(self._pipeline_state)
+        flat_inputs = tf.nest.flatten(inputs)
 
-        return out_state[-1,...]
+        flat_output_pipeline = []
+        flat_output_state = []
+        flat_input_pipeline = []
+        for x0, state in zip(flat_inputs, flat_pipeline_state):
+            state_un = tf.split(state, nstages, axis=0)
+            in_pipeline_un = [tf.expand_dims(x0, axis=0)] + state_un[:-1]
+            out_pipeline_un = [apply_layer(l, xi) for l, xi in zip(self._segment_layers, in_pipeline_un)]
+
+            in_pipeline = tf.concat(in_pipeline_un, axis=0)
+            out_pipeline = tf.concat(out_pipeline_un, axis=0)
+            out_pipeline = state.assign(out_pipeline)
+            output_state = out_pipeline[-1,...]
+
+            flat_input_pipeline.append(in_pipeline)
+            flat_output_pipeline.append(out_pipeline)
+            flat_output_state.append(output_state)
+
+        output_pipeline_state = tf.nest.pack_sequence_as(self._pipeline_state, flat_output_pipeline)
+        output_state = tf.nest.pack_sequence_as(self._pipeline_state, flat_output_state)
+        input_pipeline_state = tf.nest.pack_sequence_as(self._pipeline_state, flat_input_pipeline)
+
+        self._pipeline_state = output_pipeline_state
+        self._input_state = inputs
+        self._output_state = output_state
+        self._input_pipeline_state = input_pipeline_state
+
+        return self._output_state
 
     def compute_output_shape(self, input_shape):
-        assert len(self._segment_layers) == input_shape[0]
         return input_shape
 
     @property
@@ -95,6 +112,14 @@ class PipelinedSegment(network.Network):
     @property
     def output_state(self):
         return self._output_state
+
+    @property
+    def input_pipeline(self):
+        return self._input_pipeline_state
+
+    @property
+    def output_pipeline(self):
+        return self._pipeline_state
 
     @property
     def num_stages(self):
