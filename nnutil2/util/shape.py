@@ -16,10 +16,12 @@ def as_shape(shape):
     """Return shape as a tf.TensorShape object"""
     if isinstance(shape, tf.TensorShape):
         return shape
-    elif isinstance(shape, tf.Tensor):
+    elif isinstance(shape, (tf.Tensor, tf.TensorSpec)):
         return shape.shape
-    elif isinstance(shape, list) or isinstance(shape, tuple):
+    elif isinstance(shape, (list, tuple)) and all([isinstance(x, int) for x in shape]):
         return tf.TensorShape(shape)
+    elif tf.nest.is_nested(shape):
+        return tf.nest.map_structure(as_shape, shape)
     else:
         raise Exception("Cannot handle input type: {}".format(type(shape)))
 
@@ -79,13 +81,25 @@ def batch_shape(shape, inner_shape):
     shape = as_shape(shape)
     inner_shape = as_shape(inner_shape)
 
-    assert shape.with_rank_at_least(inner_shape.rank)
+    flat_shape = tf.nest.flatten(shape)
+    flat_inner_shape = tf.nest.flatten(inner_shape)
 
-    batch_rank = shape.rank - inner_shape.rank
-    assert batch_rank >= 0
+    assert len(flat_shape) == len(flat_inner_shape)
 
-    assert shape[batch_rank:].is_compatible_with(inner_shape)
-    return shape[0:batch_rank]
+    flat_batch_shape = []
+    for sh, ish in zip(flat_shape, flat_inner_shape):
+        assert sh.with_rank_at_least(ish.rank)
+
+        batch_rank = sh.rank - ish.rank
+        assert batch_rank >= 0
+
+        assert sh[batch_rank:].is_compatible_with(ish)
+        flat_batch_shape.append(sh[0:batch_rank])
+
+    for bs in flat_batch_shape:
+        assert bs == flat_batch_shape[0]
+
+    return flat_batch_shape[0]
 
 def infer_layer_shape(layer, input_shape, batch_rank=1):
     input_shape = as_shape(input_shape)
