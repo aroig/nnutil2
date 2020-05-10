@@ -16,14 +16,46 @@ def as_shape(shape):
     """Return shape as a tf.TensorShape object"""
     if isinstance(shape, tf.TensorShape):
         return shape
+
     elif isinstance(shape, (tf.Tensor, tf.TensorSpec)):
         return shape.shape
-    elif isinstance(shape, (list, tuple)) and all([isinstance(x, int) for x in shape]):
-        return tf.TensorShape(shape)
-    elif tf.nest.is_nested(shape):
-        return tf.nest.map_structure(as_shape, shape)
+
+    elif isinstance(shape, list):
+        if all([isinstance(x, int) for x in shape]):
+            return tf.TensorShape(shape)
+
+        else:
+            return [as_shape(x) for x in shape]
+
+    elif isinstance(shape, tuple):
+        if all([isinstance(x, int) for x in shape]):
+            return tf.TensorShape(shape)
+
+        else:
+            return tuple([as_shape(x) for x in shape])
+
+    elif isinstance(shape, dict):
+        return {k: as_shape(v) for k, v in shape.items()}
+
     else:
         raise Exception("Cannot handle input type: {}".format(type(shape)))
+
+def rank(shape):
+    shape = as_shape(shape)
+    shape_flat = tf.nest.flatten(shape)
+    rank_flat = [s.rank for s in shape_flat]
+
+    rank = rank_flat[0]
+    for r in rank_flat:
+        assert r == rank
+
+    return rank
+
+def num_elements(shape):
+    shape = as_shape(shape)
+    shape_flat = tf.nest.flatten(shape)
+
+    return sum([s.num_elements() for s in shape_flat])
 
 def normalize_axis(shape, axis):
     """Returns the normalized shape dimension indices given by the axis specification"""
@@ -67,14 +99,20 @@ def complementary_axis(shape, axis):
 def restrict_shape(shape, axis):
     """Restrict shape to the given axis"""
     shape = as_shape(shape)
-    axis = normalize_axis(shape, axis)
-    return tf.TensorShape([shape[i] for i in axis])
+    flat_shape = tf.nest.flatten(shape)
+    flat_res_shape = [tf.TensorShape([s[i] for i in normalize_axis(s, axis)]) for s in flat_shape]
+
+    res_shape = tf.nest.pack_sequence_as(shape, flat_res_shape)
+    return res_shape
 
 def reduce_shape(shape, axis):
     """Reduce shape along the given axis"""
     shape = as_shape(shape)
-    axis_c = complementary_axis(shape, axis)
-    return restrict_shape(shape, axis_c)
+    flat_shape = tf.nest.flatten(shape)
+    flat_res_shape = [tf.TensorShape([s[i] for i in complementary_axis(s, axis)]) for s in flat_shape]
+
+    res_shape = tf.nest.pack_sequence_as(shape, flat_res_shape)
+    return res_shape
 
 def batch_shape(shape, inner_shape):
     """Return the batch_shape from shape, given inner_shape"""
@@ -103,9 +141,11 @@ def batch_shape(shape, inner_shape):
 
 def infer_layer_shape(layer, input_shape, batch_rank=1):
     input_shape = as_shape(input_shape)
-    extended_shape = tf.TensorShape(batch_rank * [1]) + input_shape
-    output_shape = layer.compute_output_shape(extended_shape)
-    return output_shape[batch_rank:]
+    extended_shape = tf.nest.map_structure(lambda s: tf.TensorShape(batch_rank * [1]) + s, input_shape)
+    batched_output_shape = layer.compute_output_shape(extended_shape)
+
+    output_shape = tf.nest.map_structure(lambda s: s[batch_rank:], batched_output_shape)
+    return output_shape
 
 def is_inner_compatible_with(shape0, shape1):
     """Check whether shape0 and shape1 are compatible on the inner dimensions.
