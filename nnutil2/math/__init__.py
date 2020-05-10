@@ -13,3 +13,4 @@
 from .jacobian import *
 from .reduce_inner_sum import *
 from .approximate_identity import approximate_identity
+from .directional_derivative import *
