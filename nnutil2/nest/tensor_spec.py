@@ -29,14 +29,19 @@ def as_tensor_spec(structure):
     elif isinstance(structure, (int, np.integer, np.signedinteger, float, np.floating, str, bytes)):
         return tf.TensorSpec(shape=(), dtype=tf.dtype.as_dtype(type(structure)))
 
-    elif isinstance(structure, tf.data.experimental.TensorStructure):
-        return tf.TensorSpec(shape=structure.shape, dtype=structure.dtype)
-
-    elif isinstance(structure, tf.data.experimental.SparseTensorStructure):
-        return tf.TensorSpec(shape=structure.dense_shape, dtype=structure.dtype)
-
     else:
         raise Exception("Cannot handle nested structure of type: {}".format(type(structure)))
+
+
+def get_dtype(structure):
+    structure_flat = tf.nest.flatten(structure)
+    dtypes = [x.dtype for x in structure_flat]
+
+    dtype = dtypes[0]
+    for dt in dtypes:
+        assert dtype == dt
+
+    return dtype
 
 
 def tensor_spec_to_python(tensor_spec):
