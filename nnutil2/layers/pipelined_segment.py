@@ -14,8 +14,9 @@ from typing import List
 from tensorflow.python.keras.engine import network
 import tensorflow as tf
 
-from ..util import kwargs_for, as_shape
+from .. import util
 from .layer import Layer
+from .. import nest
 
 class PipelinedSegment(network.Network):
     """A sequential collection of layers"""
@@ -43,6 +44,7 @@ class PipelinedSegment(network.Network):
         nstages = len(self._segment_layers)
 
         self._state_shape = input_shape
+        self._pipeline_state_shape = tf.nest.map_structure(lambda s: (nstages,) + s, self._state_shape)
 
         def _add_weight(shape):
             weight = self.add_weight(
@@ -57,47 +59,50 @@ class PipelinedSegment(network.Network):
 
         self._pipeline_state = tf.nest.map_structure(_add_weight, self._state_shape)
 
+    def pipeline_state(idx):
+        tf.nest.map_structure(lambda x: x[idx:...], self._pipeline_state)
+
     def call(self, inputs, **kwargs):
         nstages = len(self._segment_layers)
 
-        # TODO: assert compatible
+        assert util.as_shape(inputs) == self._state_shape
 
         def apply_layer(l, x):
-            layer_kwargs = kwargs_for(kwargs, l.call)
+            layer_kwargs = util.kwargs_for(kwargs, l.call)
             y = l(x, **layer_kwargs)
 
             if self._segment_activation is not None:
-                y = self._segment_activation(y)
+                y = tf.nest.map_structure(self._segment_activation, y)
 
             return y
 
-        flat_pipeline_state = tf.nest.flatten(self._pipeline_state)
-        flat_inputs = tf.nest.flatten(inputs)
+        def update_input_state(xi, state):
+            xi = tf.expand_dims(xi, axis=0)
+            new_state = tf.concat([xi, state[:-1,...]], axis=0)
+            return new_state
 
-        flat_output_pipeline = []
-        flat_output_state = []
-        flat_input_pipeline = []
-        for x0, state in zip(flat_inputs, flat_pipeline_state):
-            state_un = tf.split(state, nstages, axis=0)
-            in_pipeline_un = [tf.expand_dims(x0, axis=0)] + state_un[:-1]
-            out_pipeline_un = [apply_layer(l, xi) for l, xi in zip(self._segment_layers, in_pipeline_un)]
+        input_pipeline_state = tf.nest.map_structure(update_input_state, inputs, self._pipeline_state)
 
-            in_pipeline = tf.concat(in_pipeline_un, axis=0)
-            out_pipeline = tf.concat(out_pipeline_un, axis=0)
-            out_pipeline = state.assign(out_pipeline)
-            output_state = out_pipeline[-1,...]
+        output_pipeline_state = []
+        for idx, l in enumerate(self._segment_layers):
+            state_in = tf.nest.map_structure(lambda x: x[idx:idx+1,...], input_pipeline_state)
+            state_out = apply_layer(l, state_in)
+            output_pipeline_state.append(state_out)
 
-            flat_input_pipeline.append(in_pipeline)
-            flat_output_pipeline.append(out_pipeline)
-            flat_output_state.append(output_state)
+        output_pipeline_state = tf.nest.map_structure(
+            lambda *x: tf.concat(x, axis=0),
+            *output_pipeline_state
+        )
 
-        output_pipeline_state = tf.nest.pack_sequence_as(self._pipeline_state, flat_output_pipeline)
-        output_state = tf.nest.pack_sequence_as(self._pipeline_state, flat_output_state)
-        input_pipeline_state = tf.nest.pack_sequence_as(self._pipeline_state, flat_input_pipeline)
+        assert util.as_shape(output_pipeline_state) == self._pipeline_state_shape
 
-        self._pipeline_state = output_pipeline_state
+        self._pipeline_state = tf.nest.map_structure(
+            lambda old, new: old.assign(new),
+            self._pipeline_state, output_pipeline_state
+        )
+
         self._input_state = inputs
-        self._output_state = output_state
+        self._output_state = tf.nest.map_structure(lambda x: x[-1,...], self._pipeline_state)
         self._input_pipeline_state = input_pipeline_state
 
         return self._output_state
