@@ -12,10 +12,15 @@
 
 import tensorflow as tf
 import numpy as np
+from .. import util
 
 class RandomNormal(tf.data.Dataset):
-    def __init__(self, tensor_spec, dtype=tf.float32, seed=None):
-        self._tensor_spec = tensor_spec
+    def __init__(self, shape, mean=0, stddev=1, dtype=tf.float32, seed=None):
+        self._shape = util.as_shape(shape)
+        self._dtype = dtype
+
+        self._mean = mean
+        self._stddev = stddev
 
         if seed is None:
             seed = 1
@@ -32,19 +37,25 @@ class RandomNormal(tf.data.Dataset):
 
     def attach_random_normal(self, value):
 
-        flat_spec = tf.nest.flatten(self._tensor_spec)
-        size = len(flat_spec)
+        flat_shape = tf.nest.flatten(self._shape)
+        size = len(flat_shape)
 
         random_normals = []
-        for i, spec in enumerate(flat_spec):
+        for i, shape in enumerate(flat_shape):
             seed0 = size * value + i
             seed = tf.stack([seed0, seed0 + self._seed])
-            shape = spec.shape
-            dtype = spec.dtype
-            dist = tf.random.stateless_normal(shape=shape, dtype=dtype, seed=seed)
+
+            dist = tf.random.stateless_normal(
+                shape=shape,
+                mean=self._mean,
+                stddev=self._stddev,
+                dtype=self._dtype,
+                seed=seed
+            )
+
             random_normals.append(dist)
 
-        tensor = tf.nest.pack_sequence_as(self._tensor_spec, random_normals)
+        tensor = tf.nest.pack_sequence_as(self._shape, random_normals)
         return tensor
 
     def _inputs(self):
