@@ -12,16 +12,16 @@
 
 import tensorflow as tf
 
-from ..util import shape
+from .. import util
 
 def flatten_vector(value, inner_structure):
     """
     Returns nested structure as a flat tensor (batch, inner_size)
     """
-    batch_shape = shape.batch_shape(value, inner_structure)
+    batch_shape = util.batch_shape(value, inner_structure)
     batch_size = batch_shape.num_elements()
 
-    flat_values = [tf.reshape(x, shape=(batch_size, shape.as_shape(s).num_elements()))
+    flat_values = [tf.reshape(x, shape=(batch_size, util.as_shape(s).num_elements()))
                    for x, s in zip(tf.nest.flatten(value), tf.nest.flatten(inner_structure))]
 
     flat_vector = tf.concat(flat_values, axis=-1)
@@ -32,8 +32,8 @@ def unflatten_vector(value, inner_structure, batch_shape):
     """
     Unflattens a batch of vectors (batch, inner_size) into a nested structure
     """
-    batch_shape = shape.as_shape(batch_shape)
-    inner_shape = shape.as_shape(inner_structure)
+    batch_shape = util.as_shape(batch_shape)
+    inner_shape = util.as_shape(inner_structure)
     flat_inner_shape = tf.nest.flatten(inner_shape)
 
     assert value.shape.rank == 2
@@ -42,7 +42,7 @@ def unflatten_vector(value, inner_structure, batch_shape):
     inner_size = value.shape[1]
 
     assert batch_size == batch_shape.num_elements()
-    assert inner_size == shape.num_elements(inner_shape)
+    assert inner_size == util.num_elements(inner_shape)
 
     flat_values = tf.split(value, num_or_size_splits=[s.num_elements() for s in flat_inner_shape], axis=1)
 
