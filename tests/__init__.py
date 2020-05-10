@@ -22,6 +22,7 @@ from .layers_bottleneck import *
 from .layers_pipelined_segment import *
 from .data_parse_json import *
 from .data_merge import *
+from .nest_flat_tensor import *
 from .util_shape import *
 from .util_interpolate_shape import *
 from .linalg_trace_mc import *

@@ -14,3 +14,4 @@ from .getter import *
 from .tensor import *
 from .feature import *
 from .tensor_spec import *
+from .flat_tensor import *
