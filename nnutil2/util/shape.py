@@ -154,16 +154,27 @@ def is_inner_compatible_with(shape0, shape1):
     shape0 = as_shape(shape0)
     shape1 = as_shape(shape1)
 
-    rank0 = shape0.rank
-    assert rank0 is not None
+    try:
+        tf.nest.assert_same_structure(shape0, shape1)
+    except ValueError:
+        return False
 
-    rank1 = shape1.rank
-    assert rank1 is not None
+    flat_shape0 = tf.nest.flatten(shape0)
+    flat_shape1 = tf.nest.flatten(shape1)
 
-    if rank0 < rank1:
-        return shape1[-rank0:].is_compatible_with(shape0)
-    else:
-        return shape0[-rank1:].is_compatible_with(shape1)
+    def check(s0, s1):
+        rank0 = s0.rank
+        assert rank0 is not None
+
+        rank1 = s1.rank
+        assert rank1 is not None
+
+        if rank0 < rank1:
+            return s1[-rank0:].is_compatible_with(s0)
+        else:
+            return s0[-rank1:].is_compatible_with(s1)
+
+    return all([check(s0, s1) for s0, s1 in zip(flat_shape0, flat_shape1)])
 
 def is_outer_compatible_with(shape0, shape1):
     """Check whether shape0 contains shape1 are compatible on the inner dimensions.
@@ -172,16 +183,27 @@ def is_outer_compatible_with(shape0, shape1):
     shape0 = as_shape(shape0)
     shape1 = as_shape(shape1)
 
-    rank0 = shape0.rank
-    assert rank0 is not None
+    try:
+        tf.nest.assert_same_structure(shape0, shape1)
+    except ValueError:
+        return False
 
-    rank1 = shape1.rank
-    assert rank1 is not None
+    flat_shape0 = tf.nest.flatten(shape0)
+    flat_shape1 = tf.nest.flatten(shape1)
 
-    if rank0 < rank1:
-        return shape1[:rank0].is_compatible_with(shape0)
-    else:
-        return shape0[:rank1].is_compatible_with(shape1)
+    def check(s0, s1):
+        rank0 = s0.rank
+        assert rank0 is not None
+
+        rank1 = s1.rank
+        assert rank1 is not None
+
+        if rank0 < rank1:
+            return s1[:rank0].is_compatible_with(s0)
+        else:
+            return s0[:rank1].is_compatible_with(s1)
+
+    return all([check(s0, s1) for s0, s1 in zip(flat_shape0, flat_shape1)])
 
 def outer_squeeze(x):
     shape = x.shape
