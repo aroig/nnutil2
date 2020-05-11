@@ -37,6 +37,24 @@ class LayersSegment(tf.test.TestCase):
 
         # self.assertEqual(segment.inputs[0].shape, (2, 3))
 
+    def test_layers_segment_nested(self):
+        identity0 = nnu.layers.Identity()
+        identity1 = nnu.layers.Identity()
+
+        segment = nnu.layers.Segment(layers=[identity0, identity1])
+        x = {
+            'a': tf.random.normal(shape=(2, 3), dtype=tf.float32),
+            'b': tf.random.normal(shape=(4,), dtype=tf.float32),
+        }
+
+        y = segment(x)
+
+        self.assertEqual(len(segment.layers), 2)
+        self.assertEqual(len(segment.trainable_weights), 0)
+
+        self.assertEqual(x['a'].shape, y['a'].shape)
+        self.assertEqual(x['b'].shape, y['b'].shape)
+
 
 if __name__ == '__main__':
     tf.test.main()
