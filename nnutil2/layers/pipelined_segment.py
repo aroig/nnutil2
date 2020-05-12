@@ -16,14 +16,28 @@ import tensorflow as tf
 
 from .. import util
 from .layer import Layer
+from .stacked import Stacked
 from .. import nest
+from .. import util
 
 class PipelinedSegment(network.Network):
     """A sequential collection of layers"""
-    def __init__(self, layers: List[Layer]=[], activation=None, dtype=tf.float32, **kwargs):
+    def __init__(self, layers: List[Layer]=[], stacked_layers=None, activation=None, nstages=None,
+                 dtype=tf.float32, **kwargs):
         super(PipelinedSegment, self).__init__(**kwargs)
 
-        self._segment_layers = layers
+        if stacked_layers is not None:
+            assert nstages is not None
+            self._stacked_layers = stacked_layers
+            self._nstages = nstages
+
+        elif layers is not None:
+            self._stacked_layers = Stacked(layers=layers)
+            self._nstages = len(layers)
+
+        else:
+            raise Exception("Either layers or stacked_layers must be given")
+
         self._segment_activation = tf.keras.activations.get(activation)
 
         self._state_dtype = dtype
@@ -41,15 +55,13 @@ class PipelinedSegment(network.Network):
         return dict(list(base_config.items()) + list(config.items()))
 
     def build(self, input_shape):
-        nstages = len(self._segment_layers)
-
         self._state_shape = input_shape
-        self._pipeline_state_shape = tf.nest.map_structure(lambda s: (nstages,) + s, self._state_shape)
+        self._pipeline_state_shape = tf.nest.map_structure(lambda s: (self._nstages,) + s, self._state_shape)
 
         def _add_weight(shape):
             weight = self.add_weight(
                 "state",
-                shape=(nstages,) + shape,
+                shape=(self._nstages,) + shape,
                 dtype = self._state_dtype,
                 trainable=False,
                 initializer=tf.keras.initializers.zeros(),
@@ -63,18 +75,7 @@ class PipelinedSegment(network.Network):
         tf.nest.map_structure(lambda x: x[idx:...], self._pipeline_state)
 
     def call(self, inputs, **kwargs):
-        nstages = len(self._segment_layers)
-
         assert util.as_shape(inputs) == self._state_shape
-
-        def apply_layer(l, x):
-            layer_kwargs = util.kwargs_for(kwargs, l.call)
-            y = l(x, **layer_kwargs)
-
-            if self._segment_activation is not None:
-                y = tf.nest.map_structure(self._segment_activation, y)
-
-            return y
 
         def update_input_state(xi, state):
             xi = tf.expand_dims(xi, axis=0)
@@ -82,17 +83,7 @@ class PipelinedSegment(network.Network):
             return new_state
 
         input_pipeline_state = tf.nest.map_structure(update_input_state, inputs, self._pipeline_state)
-
-        output_pipeline_state = []
-        for idx, l in enumerate(self._segment_layers):
-            state_in = tf.nest.map_structure(lambda x: x[idx:idx+1,...], input_pipeline_state)
-            state_out = apply_layer(l, state_in)
-            output_pipeline_state.append(state_out)
-
-        output_pipeline_state = tf.nest.map_structure(
-            lambda *x: tf.concat(x, axis=0),
-            *output_pipeline_state
-        )
+        output_pipeline_state = self._stacked_layers(input_pipeline_state, **kwargs)
 
         assert util.as_shape(output_pipeline_state) == self._pipeline_state_shape
 
@@ -128,4 +119,4 @@ class PipelinedSegment(network.Network):
 
     @property
     def num_stages(self):
-        return len(self._segment_layers)
+        return self._nstages
