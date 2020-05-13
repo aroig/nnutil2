@@ -35,7 +35,7 @@ class Stacked(network.Network):
             'activation': self._segment_activation,
         }
 
-        base_config = super(PipelinedSegment, self).get_config()
+        base_config = super(Stacked, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, inputs, **kwargs):
