@@ -26,3 +26,4 @@ from .bottleneck import Bottleneck
 from .normalization import Normalization
 from .pipelined_segment import PipelinedSegment
 from .stacked import Stacked
+from .moving_average import MovingAverage
