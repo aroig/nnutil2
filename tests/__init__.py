@@ -31,3 +31,4 @@ from .linalg_orthogonalize import *
 from .linalg_symmetric_lanczos import *
 from .linalg_generalized_trace import *
 from .linalg_symmetrize import *
+from .layers_replica_dense import *
