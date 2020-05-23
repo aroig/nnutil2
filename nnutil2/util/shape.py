@@ -51,11 +51,16 @@ def rank(shape):
 
     return rank
 
-def num_elements(shape):
+def num_elements(shape, axis=None):
     shape = as_shape(shape)
     shape_flat = tf.nest.flatten(shape)
 
-    return sum([s.num_elements() for s in shape_flat])
+    if axis is not None:
+        shape_flat = [tf.TensorShape([s[i] for i in axis]) for s in shape_flat]
+
+    count = sum([s.num_elements() for s in shape_flat])
+
+    return count
 
 def normalize_axis(shape, axis):
     """Returns the normalized shape dimension indices given by the axis specification"""
@@ -79,6 +84,11 @@ def normalize_axis(shape, axis):
         axis = [normalize(d) for d in axis]
         assert max(axis) < rank
         return axis
+
+    elif isinstance(axis, tuple):
+        axis = [normalize(d) for d in axis]
+        assert max(axis) < rank
+        return tuple(axis)
 
     else:
         raise Exception("Unhandled axis type: {}".format(type(axis)))
