@@ -44,10 +44,11 @@ class MovingAverage(Layer):
         )
 
     def call(self, inputs, **kwargs):
-        y = tf.nest.map_structure(
-            lambda state, x: state.assign_sub((1 - self._decay) * (state - x)),
-            self._state, inputs
-        )
+        def update(state, x):
+            newval = state.assign_sub((1 - self._decay) * (state - x))
+            return newval
+
+        y = tf.nest.map_structure(update, self._state, inputs)
         return y
 
     def compute_output_shape(self, input_shape):
