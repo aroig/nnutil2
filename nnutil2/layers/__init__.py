@@ -27,4 +27,5 @@ from .normalization import Normalization
 from .pipelined_segment import PipelinedSegment
 from .stacked import Stacked
 from .moving_average import MovingAverage
+from .moving_log_average import MovingLogAverage
 from .replica_dense import ReplicaDense
