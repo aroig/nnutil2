@@ -38,22 +38,38 @@ class MovingLogAverage(Layer):
     def build(self, input_shape):
         self._state_shape = input_shape
 
-        self._state = tf.nest.map_structure(
-            lambda s: self.add_weight(shape=s, dtype=self._dtype, trainable=False),
-            input_shape
+        self._bias_correction = self.add_weight(
+            shape=(),
+            dtype=self._dtype,
+            initializer=tf.keras.initializers.zeros(),
+            trainable = False,
         )
+
+        def add_weight(s):
+            return self.add_weight(
+                shape=s,
+                initializer=tf.keras.initializers.zeros(),
+                dtype=self._dtype,
+                trainable=False
+            )
+
+        self._state = tf.nest.map_structure(add_weight, input_shape)
 
     def call(self, inputs, **kwargs):
         """
         S_i = log ( δ * exp( S_i-1 ) + (1 - δ) * exp (xi) )
             = S_i-1 + log δ + log( 1 + exp (xi - S_i-1 + log (1 - δ) - log(δ)) )
         """
+        bias_correction = self._bias_correction.assign_add(tf.math.log(self._decay))
+
         A = tf.math.log(1 - self._decay) - tf.math.log(self._decay)
 
         def update(state, x):
             delta = tf.math.log(self._decay) + tf.math.softplus(x - state + A)
             newval = state.assign_add(delta)
-            return newval
+
+            newval_corr = newval - tf.math.log(1 - tf.math.exp(bias_correction))
+            return newval_corr
 
         y = tf.nest.map_structure(update, self._state, inputs)
         return y
