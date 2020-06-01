@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # nnutil2 - Tensorflow utilities for training neural networks
-# Copyright (c) 2019, Abdó Roig-Maranges <abdo.roig@gmail.com>
+# Copyright (c) 2020, Abdó Roig-Maranges <abdo.roig@gmail.com>
 #
 # This file is part of 'nnutil2'.
 #
@@ -21,8 +21,10 @@ class ReplicaDense(Layer):
     """
     def __init__(self,
                  nfilters=None,
-                 replica_axes=None, contraction_axes=None,
+                 replica_axes=None,
+                 contraction_axes=None,
                  activation=None,
+                 residual=False,
                  kernel_regularizer=None, bias_regularizer=None,
                  kernel_constraint=None, bias_constraint=None,
                  kernel_initializer=None, bias_initializer=None,
@@ -40,6 +42,7 @@ class ReplicaDense(Layer):
         self._contraction_axes = contraction_axes
 
         self._activation = tf.keras.activations.get(activation)
+        self._residual = residual
 
         self._kernel_regularizer = tf.keras.regularizers.get(kernel_regularizer)
         self._bias_regularizer = tf.keras.regularizers.get(bias_regularizer)
@@ -52,6 +55,15 @@ class ReplicaDense(Layer):
 
         super(ReplicaDense, self).__init__()
 
+    def _approx_id(self, shape):
+        assert shape[-1] == shape[-2]
+
+        eye = tf.eye(shape[-1])
+        rank = shape.rank
+
+        ret_shape = (rank - 2) * (1,) + shape[-2:]
+        return tf.reshape(eye, shape=ret_shape)
+
     def build(self, input_shape):
         contraction_axes = normalize_axis(input_shape, self._contraction_axes)
         replica_axes = normalize_axis(input_shape, self._replica_axes)
@@ -63,12 +75,18 @@ class ReplicaDense(Layer):
         replica_dim = num_elements(input_shape, replica_axes)
         nfilters_dim = num_elements(self._nfilters)
 
+        def residual_initializer(shape, dtype):
+            x = self._kernel_initializer(shape, dtype)
+            if self._residual:
+                x = x + self._approx_id(tf.TensorShape(shape))
+            return x
+
         self._weights = self.add_weight(
             name="weights",
             shape=(replica_dim, 1, nfilters_dim, contraction_dim),
             regularizer=self._kernel_regularizer,
             constraint=self._kernel_constraint,
-            initializer=self._kernel_initializer,
+            initializer=residual_initializer,
             dtype=self._dtype
         )
 
