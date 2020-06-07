@@ -15,3 +15,4 @@ from .trace_mc import *
 from .dotprod import *
 from .symmetrize import *
 from .generalized_trace import *
+from .linear_operator_hessian import *
