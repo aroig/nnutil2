@@ -16,3 +16,4 @@ from .dotprod import *
 from .symmetrize import *
 from .generalized_trace import *
 from .linear_operator_hessian import *
+from .linear_operator_approx_hessian import *

@@ -9,16 +9,18 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
+import sys
 
 import tensorflow as tf
 
-class LinearOperatorHessian(tf.linalg.LinearOperator):
-    def __init__(self, func, x,
+class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
+    def __init__(self, func, x, epsilon=1e-3,
                  is_non_singular=None, is_positive_definite=None,
-                 use_pfor = False,
+                 use_pfor=False,
                  name="LinearOperatorHessian"):
         self._func = func
         self._x = x
+        self._epsilon = epsilon
 
         self._batch_shape = x.shape[:-1]
         self._batch_size = self._batch_shape.num_elements()
@@ -26,7 +28,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
 
         self._use_pfor = use_pfor
 
-        super(LinearOperatorHessian, self).__init__(
+        super(LinearOperatorApproxHessian, self).__init__(
             dtype=self._x.dtype,
             is_non_singular=is_non_singular,
             is_self_adjoint=True,
@@ -68,6 +70,58 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
 
         return y_v
 
+    def _approx_directional_derivative(self, func, x, v, adjoint_arg=False):
+        assert v.shape.rank == self._batch_shape.rank + 2
+        assert v.shape[:-2] == self._batch_shape
+
+        assert x.shape == self._batch_shape + (self._inner_size,)
+
+        # bring vectors dimension at the begining
+        if adjoint_arg:
+            num_vectors = v.shape[-2]
+            inner_size = v.shape[-1]
+            perm = [self._batch_shape.rank] + list(range(0, self._batch_shape.rank)) + [self._batch_shape.rank+1]
+            v_tr = tf.transpose(v, perm=perm)
+
+        else:
+            num_vectors = v.shape[-1]
+            inner_size = v.shape[-2]
+            perm = [self._batch_shape.rank+1] + list(range(0, self._batch_shape.rank)) + [self._batch_shape.rank]
+            v_tr = tf.transpose(v, perm=perm)
+
+        assert v.dtype == x.dtype
+        assert inner_size == self._inner_size
+
+        def finite_difference(w):
+            y0 = func(x - 0.5 * self._epsilon * w)
+            y1 = func(x + 0.5 * self._epsilon * w)
+            return (y1 - y0) / self._epsilon
+
+        y_v = tf.map_fn(finite_difference, v_tr)
+        assert y_v.shape == (num_vectors,) + self._batch_shape
+
+        perm = list(range(1, self._batch_shape.rank+1)) + [0]
+        y_v = tf.transpose(y_v, perm=perm)
+
+        assert y_v.shape == self._batch_shape + (num_vectors,)
+
+        return y_v
+
+    def _approx_directional_derivative_simple(self, func, x, v):
+        assert v.shape.rank == self._batch_shape.rank + 1
+        assert v.shape[:-1] == self._batch_shape
+
+        assert x.shape == self._batch_shape + (self._inner_size,)
+        assert v.dtype == x.dtype
+
+        y0 = func(x - 0.5 * self._epsilon * v)
+        y1 = func(x + 0.5 * self._epsilon * v)
+        y_v = (y1 - y0) / self._epsilon
+
+        assert y_v.shape == self._batch_shape
+
+        return y_v
+
     def _flat_jacobian(self, x_semi_flat):
         with tf.GradientTape() as tape:
             tape.watch(x_semi_flat)
@@ -97,7 +151,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
             x_unflat = tf.reshape(x_flat, shape=self._x.shape)
             v_unflat = tf.reshape(v_flat, shape=v.shape)
 
-            y_v = self._directional_derivative(self._func, x_unflat, v_unflat, adjoint_arg=False)
+            y_v = self._approx_directional_derivative(self._func, x_unflat, v_unflat, adjoint_arg=False)
 
             num_vectors = y_v.shape[-1]
             y_v_flat = tf.reshape(y_v, shape=(self._batch_size, num_vectors))
@@ -108,6 +162,30 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
         Hv_flat_t = tf.transpose(Hv_flat, perm=[0, 2, 1])
         Hv = tf.reshape(Hv_flat_t, shape=self._batch_shape + (self._inner_size, num_vectors))
 
+        return Hv
+
+    def _matvec(self, v, adjoint=False):
+        assert v.shape.rank == self._batch_shape.rank + 1
+
+        x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_size))
+        v_flat = tf.reshape(v, shape=(self._batch_size,) + v.shape[-1:])
+
+        with tf.GradientTape() as tape:
+            tape.watch(x_flat)
+
+            x_unflat = tf.reshape(x_flat, shape=self._x.shape)
+            v_unflat = tf.reshape(v_flat, shape=v.shape)
+
+            y_v_flat = self._approx_directional_derivative_simple(self._func, x_unflat, v_unflat)
+            assert y_v_flat.shape == self._batch_shape
+
+            y_v_flat = tf.expand_dims(y_v_flat, axis=-1)
+
+        Hv_flat = tape.batch_jacobian(y_v_flat, x_flat, experimental_use_pfor=self._use_pfor)
+
+        assert Hv_flat.shape == tf.TensorShape([self._batch_size, 1, self._inner_size])
+
+        Hv = tf.reshape(Hv_flat, shape=self._x.shape)
         return Hv
 
     def _diag_part(self):
@@ -166,16 +244,21 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
         assert v1.shape == self._x.shape
 
         with self._name_scope(name):
-            v0 = tf.expand_dims(v0, axis=-1)
-            v1 = tf.expand_dims(v1, axis=-1)
-
-            def first_derivative(x):
-                y_v0 = self._directional_derivative(self._func, x, v0)
-                assert y_v0.shape == self._batch_shape + (1,)
-                y_v0 = tf.reshape(y_v0, shape=self._batch_shape)
+            def first_derivative_0(x):
+                y_v0 = self._approx_directional_derivative_simple(self._func, x, v0)
+                assert y_v0.shape == self._batch_shape
                 return y_v0
 
-            y_v0v1 = self._directional_derivative(first_derivative, self._x, v1)
+            def first_derivative_1(x):
+                y_v1 = self._approx_directional_derivative_simple(self._func, x, v1)
+                assert y_v1.shape == self._batch_shape
+                return y_v1
+
+            v0_ = tf.expand_dims(v0, axis=-1)
+            v1_ = tf.expand_dims(v1, axis=-1)
+
+            y_v0v1 = 0.5 * (self._directional_derivative(first_derivative_0, self._x, v1_) +
+                            self._directional_derivative(first_derivative_1, self._x, v0_))
             assert y_v0v1.shape == self._batch_shape + (1,)
 
             y_v0v1 = tf.reshape(y_v0v1, shape=self._batch_shape)
