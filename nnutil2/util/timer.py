@@ -9,12 +9,13 @@
 # This file may be modified and distributed under the terms of the 3-clause BSD
 # license. See the LICENSE file for details.
 
-from .tensorboard import *
-from .shape import *
-from .interpolate_shape import *
-from .kwargs_for import *
-from .numpy_json_encoder import *
-from .cached_property import *
-from .interleave import *
-from .uninterleave import *
-from .timer import *
+import time
+
+class Timer:
+    def __enter__(self):
+        self.start = time.time()
+        return self
+
+    def __exit__(self, *args):
+        self.end = time.time()
+        self.interval = self.end - self.start
