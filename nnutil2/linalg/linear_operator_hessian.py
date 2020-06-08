@@ -21,6 +21,8 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
         self._batch_size = self._batch_shape.num_elements()
         self._inner_size = x.shape[-1]
 
+        self._use_pfor = False
+
         super(LinearOperatorHessian, self).__init__(
             dtype=self._x.dtype,
             is_non_singular=is_non_singular,
@@ -61,7 +63,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
 
             y = func(x + tf.linalg.matvec(v, s, adjoint_a=adjoint_arg))
 
-        y_v = tape.jacobian(y, s)
+        y_v = tape.jacobian(y, s, experimental_use_pfor=self._use_pfor)
         assert y_v.shape == self._batch_shape + (num_vectors,)
 
         return y_v
@@ -77,7 +79,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
 
             y_semi_flat = tf.reshape(y, shape=(self._batch_size,1))
 
-        y_x_semi_flat = tape.batch_jacobian(y_semi_flat, x_semi_flat)
+        y_x_semi_flat = tape.batch_jacobian(y_semi_flat, x_semi_flat, experimental_use_pfor=self._use_pfor)
         assert y_x_semi_flat.shape == tf.TensorShape([self._batch_size, 1, self._inner_size])
 
         y_x_semi_flat = tf.reshape(y_x_semi_flat, shape=(self._batch_size, self._inner_size))
@@ -101,7 +103,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
             num_vectors = y_v.shape[-1]
             y_v_flat = tf.reshape(y_v, shape=(self._batch_size, num_vectors))
 
-        Hv_flat = tape.batch_jacobian(y_v_flat, x_flat)
+        Hv_flat = tape.batch_jacobian(y_v_flat, x_flat, experimental_use_pfor=self._use_pfor)
         assert Hv_flat.shape == tf.TensorShape([self._batch_size, num_vectors, self._inner_size])
 
         Hv_flat_t = tf.transpose(Hv_flat, perm=[0, 2, 1])
@@ -122,7 +124,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
 
             y_x_flat = tf.reshape(y_x_semi_flat, shape=(self._batch_size * self._inner_size, 1))
 
-        y_xx_flat = tape.batch_jacobian(y_x_flat, x_flat)
+        y_xx_flat = tape.batch_jacobian(y_x_flat, x_flat, experimental_use_pfor=self._use_pfor)
         assert y_xx_flat.shape == tf.TensorShape([self._batch_size * self._inner_size, 1, 1])
 
         y_xx = tf.reshape(y_xx_flat, shape=self._batch_shape + (self._inner_size,))
@@ -143,7 +145,7 @@ class LinearOperatorHessian(tf.linalg.LinearOperator):
             y_x_flat = self._flat_jacobian(x_flat)
             assert y_x_flat.shape == tf.TensorShape([self._batch_size, self._inner_size])
 
-        y_xx_flat = tape.batch_jacobian(y_x_flat, x_flat)
+        y_xx_flat = tape.batch_jacobian(y_x_flat, x_flat, experimental_use_pfor=self._use_pfor)
         assert y_xx_flat.shape == tf.TensorShape([self._batch_size, self._inner_size, self._inner_size])
 
         y_xx = tf.reshape(y_xx_flat, shape=self._batch_shape + (self._inner_size, self._inner_size))
