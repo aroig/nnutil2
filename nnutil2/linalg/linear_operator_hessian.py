@@ -15,7 +15,7 @@ import tensorflow as tf
 class LinearOperatorHessian(tf.linalg.LinearOperator):
     def __init__(self, func, x,
                  is_non_singular=None, is_positive_definite=None,
-                 use_pfor = False,
+                 use_pfor = True,
                  name="LinearOperatorHessian"):
         self._func = func
         self._x = x
