@@ -14,7 +14,7 @@ import sys
 import tensorflow as tf
 
 class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
-    def __init__(self, func, x, epsilon=1e-3,
+    def __init__(self, func, x, epsilon=1e-2,
                  is_non_singular=None, is_positive_definite=None,
                  use_pfor=True,
                  name="LinearOperatorHessian"):
@@ -59,7 +59,7 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
         assert v.dtype == x.dtype
         assert inner_size == self._inner_size
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             s = tf.constant(0, shape=(num_vectors,), dtype=x.dtype)
             tape.watch(s)
 
@@ -97,7 +97,9 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
             y1 = func(x + 0.5 * self._epsilon * w)
             return (y1 - y0) / self._epsilon
 
-        y_v = tf.map_fn(finite_difference, v_tr)
+        # y_v = tf.map_fn(finite_difference, v_tr)
+        y_v = tf.vectorized_map(finite_difference, v_tr)
+
         assert y_v.shape == (num_vectors,) + self._batch_shape
 
         perm = list(range(1, self._batch_shape.rank+1)) + [0]
@@ -122,8 +124,50 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
 
         return y_v
 
+    def _approx_quadratic_form_simple(self, func, x, v, w):
+        assert v.shape.rank == self._batch_shape.rank + 1
+        assert v.shape[:-1] == self._batch_shape
+
+        assert x.shape == self._batch_shape + (self._inner_size,)
+        assert v.dtype == x.dtype
+
+        y00 = func(x + 0.5 * self._epsilon * (-v - w))
+        y01 = func(x + 0.5 * self._epsilon * (-v + w))
+        y10 = func(x + 0.5 * self._epsilon * (v - w))
+        y11 = func(x + 0.5 * self._epsilon * (v + w))
+
+        y_vw = (y11 - y10 - y01 + y00) / (self._epsilon * self._epsilon)
+
+        assert y_vw.shape == self._batch_shape
+
+        return y_vw
+
+    def _quadratic_form_v1(self, func, x, v, w):
+        assert v.shape == x.shape
+        assert w.shape == x.shape
+
+        def first_derivative_v(x_):
+            y_v = self._approx_directional_derivative_simple(func, x_, v)
+            assert y_v.shape == self._batch_shape
+            return y_v
+
+        def first_derivative_w(x_):
+            y_w = self._approx_directional_derivative_simple(func, x_, w)
+            assert y_w.shape == self._batch_shape
+            return y_w
+
+        v_ = tf.expand_dims(v, axis=-1)
+        w_ = tf.expand_dims(w, axis=-1)
+
+        y_vw = 0.5 * (self._directional_derivative(first_derivative_w, x, v_) +
+                      self._directional_derivative(first_derivative_v, x, w_))
+        assert y_vw.shape == self._batch_shape + (1,)
+
+        y_vw = tf.reshape(y_vw, shape=self._batch_shape)
+        return y_vw
+
     def _flat_jacobian(self, x_semi_flat):
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             tape.watch(x_semi_flat)
 
             x_unflat = tf.reshape(x_semi_flat, shape=self._x.shape)
@@ -145,7 +189,7 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
         x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_size))
         v_flat = tf.reshape(v, shape=(self._batch_size,) + v.shape[-2:])
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             tape.watch(x_flat)
 
             x_unflat = tf.reshape(x_flat, shape=self._x.shape)
@@ -170,7 +214,7 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
         x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_size))
         v_flat = tf.reshape(v, shape=(self._batch_size,) + v.shape[-1:])
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             tape.watch(x_flat)
 
             x_unflat = tf.reshape(x_flat, shape=self._x.shape)
@@ -191,7 +235,7 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
     def _diag_part(self):
         x_flat = tf.reshape(self._x, shape=(self._batch_size * self._inner_size, 1))
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             tape.watch(x_flat)
 
             x_semi_flat = tf.reshape(x_flat, shape=(self._batch_size, self._inner_size))
@@ -216,7 +260,7 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
     def _to_dense(self):
         x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_size))
 
-        with tf.GradientTape() as tape:
+        with tf.GradientTape(persistent=True) as tape:
             tape.watch(x_flat)
 
             y_x_flat = self._flat_jacobian(x_flat)
@@ -233,7 +277,7 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
 
         with self._name_scope(name):
             v = tf.expand_dims(v, axis=-1)
-            y_v = self._directional_derivative(self._func, self._x, v)
+            y_v = self._approx_directional_derivative(self._func, self._x, v)
             assert y_v.shape == self._batch_shape + (1,)
 
             y_v = tf.reshape(y_v, shape=self._batch_shape)
@@ -244,22 +288,5 @@ class LinearOperatorApproxHessian(tf.linalg.LinearOperator):
         assert v1.shape == self._x.shape
 
         with self._name_scope(name):
-            def first_derivative_0(x):
-                y_v0 = self._approx_directional_derivative_simple(self._func, x, v0)
-                assert y_v0.shape == self._batch_shape
-                return y_v0
-
-            def first_derivative_1(x):
-                y_v1 = self._approx_directional_derivative_simple(self._func, x, v1)
-                assert y_v1.shape == self._batch_shape
-                return y_v1
-
-            v0_ = tf.expand_dims(v0, axis=-1)
-            v1_ = tf.expand_dims(v1, axis=-1)
-
-            y_v0v1 = 0.5 * (self._directional_derivative(first_derivative_0, self._x, v1_) +
-                            self._directional_derivative(first_derivative_1, self._x, v0_))
-            assert y_v0v1.shape == self._batch_shape + (1,)
-
-            y_v0v1 = tf.reshape(y_v0v1, shape=self._batch_shape)
-            return y_v0v1
+            return self._quadratic_form_v1(self._func, self._x, v0, v1)
+            # return self._approx_quadratic_form_simple(self._func, self._x, v0, v1)
