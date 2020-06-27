@@ -11,13 +11,12 @@
 
 from typing import List
 
-from tensorflow.python.keras.engine import network
 import tensorflow as tf
 
 from ..util import kwargs_for
 from .layer import Layer
 
-class Segment(network.Network):
+class Segment(Layer):
     """A sequential collection of layers"""
     def __init__(self, layers: List[Layer] = [], activation=None, **kwargs):
         super(Segment, self).__init__(**kwargs)
@@ -69,6 +68,10 @@ class Segment(network.Network):
 
         add_layers(self)
         return layers
+
+    @property
+    def layers(self):
+        return self._segment_layers
 
     @property
     def states(self):

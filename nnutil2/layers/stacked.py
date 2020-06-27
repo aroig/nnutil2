@@ -11,14 +11,13 @@
 
 from typing import List
 
-from tensorflow.python.keras.engine import network
 import tensorflow as tf
 
 from .. import util
 from .layer import Layer
 from .. import nest
 
-class Stacked(network.Network):
+class Stacked(Layer):
     """A sequential collection of layers"""
     def __init__(self, layers: List[Layer]=[], activation=None, **kwargs):
         super(Stacked, self).__init__(**kwargs)

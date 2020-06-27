@@ -11,7 +11,6 @@
 
 from typing import List
 
-from tensorflow.python.keras.engine import network
 import tensorflow as tf
 
 from .. import util
@@ -20,7 +19,7 @@ from .stacked import Stacked
 from .. import nest
 from .. import util
 
-class PipelinedSegment(network.Network):
+class PipelinedSegment(Layer):
     """A sequential collection of layers"""
     def __init__(self, layers: List[Layer]=[], stacked_layers=None, activation=None, nstages=None,
                  dtype=tf.float32, **kwargs):
