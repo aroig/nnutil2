@@ -12,7 +12,8 @@
 
 import tensorflow as tf
 
-from ..util import as_shape, batch_shape
+from ..util import as_shape, batch_shape, inner_shape, num_elements
+from ..nest import flatten_vector, unflatten_vector, get_dtype
 
 class LinearOperatorJacobian(tf.linalg.LinearOperator):
     def __init__(self,
@@ -28,22 +29,23 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
         self._x = x
 
         if input_shape is None:
-            input_shape = x.shape
+            input_shape = as_shape(x)
 
         self._inner_in_shape = as_shape(input_shape)
-        self._inner_in_size = self._inner_in_shape.num_elements()
+        self._inner_in_size = num_elements(self._inner_in_shape)
 
         self._batch_shape = batch_shape(x, self._inner_in_shape)
-        self._batch_size = self._batch_shape.num_elements()
+        self._batch_size = num_elements(self._batch_shape)
 
         y = self._func(x)
-        self._inner_out_shape = as_shape(y.shape[self._batch_shape.rank:])
-        self._inner_out_size = self._inner_out_shape.num_elements()
+        self._inner_out_shape = inner_shape(y, batch_shape=self._batch_shape)
+        self._inner_out_size = num_elements(self._inner_out_shape)
 
         self._use_pfor = use_pfor
 
+        dtype = get_dtype(x)
         super(LinearOperatorJacobian, self).__init__(
-            dtype=self._x.dtype,
+            dtype=dtype,
             is_non_singular=is_non_singular,
             is_self_adjoint=is_self_adjoint,
             is_positive_definite=is_positive_definite,
@@ -54,15 +56,15 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
         return self._batch_shape + (self._inner_out_size, self._inner_in_size)
 
     def _flat_evaluation(self, x_flat):
-        x = tf.reshape(x_flat, shape=self._batch_shape + self._inner_in_shape)
+        x = unflatten_vector(x_flat, inner_structure=self._inner_in_shape, batch_shape=self._batch_shape)
         y = self._func(x)
-        y_flat = tf.reshape(y, shape=(self._batch_size, self._inner_out_size))
+        y_flat = flatten_vector(y, inner_structure=self._inner_out_shape)
         return y_flat
 
     def _matmul(self, v, adjoint=False, adjoint_arg=False):
         assert v.shape.rank == self._batch_shape.rank + 2
 
-        x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_in_size))
+        x_flat = flatten_vector(self._x, inner_structure=self._inner_in_shape)
         v_flat = tf.reshape(v, shape=(self._batch_size,) + v.shape[-2:])
 
         if adjoint_arg:
@@ -96,7 +98,7 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
     def _diag_part(self):
         size = min(self._inner_in_size, self._inner_out_size)
 
-        x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_in_size))
+        x_flat = flatten_vector(self._x, inner_structure=self._inner_in_shape)
         x_flat = tf.reshape(x_flat[...,:size], shape=(self._batch_size * size, 1))
 
         with tf.GradientTape() as tape:
@@ -111,7 +113,7 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
         return diag
 
     def _to_dense(self):
-        x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_in_size))
+        x_flat = flatten_vector(self._x, inner_structure=self._inner_in_shape)
 
         with tf.GradientTape() as tape:
             tape.watch(x_flat)
