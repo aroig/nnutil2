@@ -73,6 +73,7 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
             num_vectors = v.shape[-1]
 
         if adjoint:
+            out_size = self._inner_in_size
             with tf.GradientTape() as tape:
                 tape.watch(x_flat)
                 tape.watch(v_flat)
@@ -83,6 +84,8 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
             res = tf.linalg.matrix_transpose(y_x_flat)
 
         else:
+            out_size = self._inner_out_size
+
             with tf.GradientTape() as tape:
                 s = tf.zeros(shape=(self._batch_size, num_vectors), dtype=v.dtype)
                 tape.watch(x_flat)
@@ -92,6 +95,8 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
                 y_flat = self._flat_evaluation(x_flat + vs_flat)
 
             res = tape.batch_jacobian(y_flat, s, experimental_use_pfor=self._use_pfor)
+
+        res = tf.reshape(res, shape=self._batch_shape + (out_size, num_vectors))
 
         return res
 
@@ -109,7 +114,7 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
             y_flat = tf.reshape(y_unflat[..., :size], shape=(self._batch_size * size, 1))
 
         diag_flat = tape.batch_jacobian(y_flat, x_flat, experimental_use_pfor=self._use_pfor)
-        diag = tf.reshape(diag_flat, shape=(self._batch_size, size))
+        diag = tf.reshape(diag_flat, shape=self._batch_shape + (size,))
         return diag
 
     def _to_dense(self):
