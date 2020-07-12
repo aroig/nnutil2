@@ -94,6 +94,7 @@ class PipelinedSegment(Layer):
         self._input_state = inputs
         self._output_state = tf.nest.map_structure(lambda x: x[-1,...], self._pipeline_state)
         self._input_pipeline_state = input_pipeline_state
+        self._output_pipeline_state = output_pipeline_state
 
         return self._output_state
 
@@ -114,7 +115,7 @@ class PipelinedSegment(Layer):
 
     @property
     def output_pipeline(self):
-        return tf.nest.map_structure(lambda x: tf.identity(x), self._pipeline_state)
+        return self._output_pipeline_state
 
     @property
     def num_stages(self):
