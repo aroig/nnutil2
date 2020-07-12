@@ -32,6 +32,7 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
        2. T = V* A V, is symmetric, tridiagonal of shape (..., size, size)
 
     """
+    assert isinstance(f, tf.linalg.LinearOperator)
 
     v0 = vinit()
     dtype = v0.dtype
@@ -46,7 +47,7 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
     T_shape = batch_shape + (size, size)
     V_shape = batch_shape + (N, size)
 
-    fv0 = f(v0)
+    fv0 = f.matvec(v0)
     assert fv0.shape == v0.shape
 
     alpha0 = dotprod(fv0, v0, keepdims=True)
@@ -90,7 +91,7 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
         assert v.shape == v_ip1.shape
 
         # Lanczos update
-        fv_ip1 = f(v_ip1)
+        fv_ip1 = f.matvec(v_ip1)
         alpha_ip1 = dotprod(fv_ip1, v_ip1, keepdims=True)
         w_ip1 = fv_ip1 - alpha_ip1 * v_ip1 - beta_ip1 * v
         assert w_ip1.shape == w.shape

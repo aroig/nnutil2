@@ -27,9 +27,10 @@ class LinalgSymmetricLanczos(tf.test.TestCase):
         shape = (batch_size, N, N)
 
         A = nnu.linalg.symmetrize(tf.random.normal(shape=shape))
+        Aop = tf.linalg.LinearOperatorFullMatrix(A)
 
         T, V = nnu.linalg.symmetric_lanczos(
-            lambda v: tf.linalg.matvec(A, v),
+            Aop,
             lambda : nnu.random.uniform_unit_vector(shape=shape[:-1]),
             size=M,
             orthogonalize_step=True
