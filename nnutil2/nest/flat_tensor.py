@@ -24,7 +24,11 @@ def flatten_vector(value, inner_structure):
     flat_values = [tf.reshape(x, shape=(batch_size, util.as_shape(s).num_elements()))
                    for x, s in zip(tf.nest.flatten(value), tf.nest.flatten(inner_structure))]
 
-    flat_vector = tf.concat(flat_values, axis=-1)
+    if len(flat_values) == 1:
+        flat_vector = flat_values[0]
+    else:
+        flat_vector = tf.concat(flat_values, axis=-1)
+
     return flat_vector
 
 
@@ -44,7 +48,10 @@ def unflatten_vector(value, inner_structure, batch_shape):
     assert batch_size == batch_shape.num_elements()
     assert inner_size == util.num_elements(inner_shape)
 
-    flat_values = tf.split(value, num_or_size_splits=[s.num_elements() for s in flat_inner_shape], axis=1)
+    if len(flat_inner_shape) == 1:
+        flat_values = [value]
+    else:
+        flat_values = tf.split(value, num_or_size_splits=[s.num_elements() for s in flat_inner_shape], axis=1)
 
     unflat_values = [tf.reshape(x, shape=batch_shape + s) for x, s in zip(flat_values, flat_inner_shape)]
     unflat_values = tf.nest.pack_sequence_as(inner_structure, unflat_values)

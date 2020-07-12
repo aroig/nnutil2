@@ -149,6 +149,27 @@ def batch_shape(shape, inner_shape):
 
     return flat_batch_shape[0]
 
+def inner_shape(shape, batch_shape):
+    """Return the inner part of shape after removing batch_shape"""
+    shape = as_shape(shape)
+    batch_shape = as_shape(batch_shape)
+    batch_rank = batch_shape.rank
+
+    flat_shape = tf.nest.flatten(shape)
+
+    flat_inner_shape = []
+    for sh in flat_shape:
+        assert sh.with_rank_at_least(batch_rank)
+        assert batch_shape == sh[:batch_rank]
+
+        inner_rank = sh.rank - batch_rank
+        assert inner_rank >= 0
+
+        flat_inner_shape.append(sh[batch_rank:])
+
+    inner_shape = tf.nest.pack_sequence_as(shape, flat_inner_shape)
+    return inner_shape
+
 def infer_layer_shape(layer, input_shape, batch_rank=1):
     input_shape = as_shape(input_shape)
     extended_shape = tf.nest.map_structure(lambda s: tf.TensorShape(batch_rank * [1]) + s, input_shape)
