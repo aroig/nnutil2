@@ -110,11 +110,6 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
         diag = tf.reshape(diag_flat, shape=(self._batch_size, size))
         return diag
 
-    def _trace(self):
-        H_diag = self._diag_part()
-        tr = tf.reduce_sum(H_diag, axis=-1)
-        return tr
-
     def _to_dense(self):
         x_flat = tf.reshape(self._x, shape=(self._batch_size, self._inner_in_size))
 
