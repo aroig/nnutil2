@@ -26,7 +26,7 @@ class LinalgLinearOperatorJacobian(tf.test.TestCase):
     def setUp(self):
         pass
 
-    def test_linalg_linear_operator_jacobian_do_dense_1(self):
+    def test_linalg_linear_operator_jacobian_to_dense_1(self):
         shape = (16, 5)
 
         A = tf.random.normal(shape=shape, dtype=tf.float32)
