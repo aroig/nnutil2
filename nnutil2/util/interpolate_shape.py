@@ -56,3 +56,19 @@ def interpolate_shape(input_shape, output_shape, steps):
         alpha = i / (steps - 1)
         expected_shape = np.exp(np.log(shape0) + alpha * (shape_delta))
         yield ShapeAdaptor(expected_shape)
+
+
+def interpolate_shape_quant(input_shape, output_shape, steps):
+    assert steps > 1
+
+    cur_shape = None
+    for sa in interpolate_shape(input_shape, output_shape, steps):
+        if cur_shape == None:
+            cur_shape = sa.expected_shape
+            continue
+
+        factors = [int(np.round(np.log2(a / b))) for a, b in zip(sa.expected_shape, cur_shape)]
+        if any([x != 0 for x in factors]):
+            new_shape = [(np.round(np.power(2, f + np.log2(x)))) for f, x in zip(factors, cur_shape)]
+            new_shape = np.array(new_shape, dtype=np.float32)
+            yield ShapeAdaptor(new_shape)
