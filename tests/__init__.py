@@ -36,4 +36,5 @@ from .linalg_linear_operator_approx_hessian import *
 from .linalg_linear_operator_jacobian import *
 from .linalg_linear_operator_symmetrize import *
 from .linalg_linear_operator_antisymmetrize import *
+from .linalg_tensor_matvec import *
 from .initializers_approx_identity import *

@@ -20,3 +20,4 @@ from .linear_operator_approx_hessian import *
 from .linear_operator_jacobian import *
 from .linear_operator_symmetrize import *
 from .linear_operator_antisymmetrize import *
+from .tensor_matmul import *
