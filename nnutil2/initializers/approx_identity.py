@@ -11,6 +11,8 @@
 
 import tensorflow as tf
 
+from ..util import as_shape
+
 def approx_identity(perturbation=None):
     """
     Initializes a variable of shape (..., N, M) with a matrix which has
@@ -24,14 +26,20 @@ def approx_identity(perturbation=None):
 
         # TODO: handle cases were N is not multiple of M
         assert N % M == 0
-        expansion = M // N
+        expansion = N // M
+        assert expansion > 0
 
-        eye = tf.broadcast_to(tf.eye(N, dtype=dtype), shape=(expansion, M, M))
-        ret = (1 / tf.sqrt(expansion)) * tf.reshape(eye, shape=(N, M))
+        eye = tf.eye(M, dtype=dtype)
+        eye = tf.broadcast_to(eye, shape=(expansion, M, M))
+
+        alpha = (1 / tf.sqrt(tf.cast(expansion, dtype=dtype)))
+        ret = alpha * tf.reshape(eye, shape=(N, M))
 
         return ret
 
     def func(shape, dtype):
+        shape = as_shape(shape)
+
         assert shape.rank >= 2
         N = shape[-2]
         M = shape[-1]
