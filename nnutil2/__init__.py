@@ -29,3 +29,4 @@ from . import io
 from . import math
 from . import random
 from . import linalg
+from . import initializers
