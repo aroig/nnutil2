@@ -85,6 +85,39 @@ class LinalgLinearOperatorJacobian(tf.test.TestCase):
         jac = nnu.linalg.LinearOperatorJacobian(func_1, x0, input_shape=(5,))
         self.assertAllClose(jac.trace(), tf.linalg.trace(jac.to_dense()))
 
+    def test_linalg_linear_operator_jacobian_trace_gradient_1(self):
+        shape = (16, 5, 7)
+
+        x0 = tf.random.normal(shape=shape, dtype=tf.float32)
+        v0 = tf.random.normal(shape=shape, dtype=tf.float32)
+        A = tf.random.normal(shape=(3, 5, 5), dtype=tf.float32)
+        B = tf.random.normal(shape=(16, 5, 5), dtype=tf.float32)
+
+        def conv(x):
+            y = tf.nn.conv1d(x, A, stride=(1,), padding='SAME', data_format='NCW')
+            y = tf.linalg.matmul(B, y)
+            return y
+
+        @tf.function
+        def func(x):
+            jac = nnu.linalg.LinearOperatorJacobian(conv, x, input_shape=(5, 7))
+            tr = jac.trace()
+            return tr
+
+        @tf.function
+        def func_grad(x):
+            with tf.GradientTape() as tape:
+                tape.watch(A)
+                tr = func(x)
+                # jac = nnu.linalg.LinearOperatorJacobian(conv, x, input_shape=(5, 7))
+                # tr = jac.trace()
+
+            grad_A = tape.gradient(tr, A)
+            return grad_A
+
+        grad_A = func_grad(x0)
+        self.assertEqual(grad_A.shape, tf.TensorShape([3, 5, 5]))
+
 
 if __name__ == '__main__':
     tf.test.main()
