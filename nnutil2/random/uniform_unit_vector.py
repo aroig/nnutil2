@@ -12,10 +12,10 @@
 
 import tensorflow as tf
 
-def uniform_unit_vector(shape):
+def uniform_unit_vector(shape, dtype=tf.float32):
     """produces a uniformly distributed unit vector
     """
 
-    x = tf.random.normal(shape=shape)
+    x = tf.random.normal(shape=shape, dtype=dtype)
     xnorm, norm = tf.linalg.normalize(x, axis=-1)
     return xnorm
