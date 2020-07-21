@@ -14,7 +14,7 @@ import tensorflow as tf
 from .dotprod import dotprod
 from .orthogonalize import orthogonalize
 
-def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> tf.Tensor:
+def symmetric_lanczos(f, vinit, size: int, v0=None, orthogonalize_step: bool = True) -> tf.Tensor:
     """Lanczos algorithm https://en.wikipedia.org/wiki/Lanczos_algorithm.
 
        Given A is a symmetric tensor of shape (..., N, N), the lanczos
@@ -34,7 +34,10 @@ def symmetric_lanczos(f, vinit, size: int, orthogonalize_step: bool = True) -> t
     """
     assert isinstance(f, tf.linalg.LinearOperator)
 
-    v0 = vinit()
+    if v0 is None:
+        v0 = vinit()
+
+    v0, _ = tf.linalg.normalize(v0)
     dtype = v0.dtype
 
     v_shape = v0.shape
