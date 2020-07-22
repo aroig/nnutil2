@@ -37,7 +37,7 @@ def symmetric_lanczos(f, vinit, size: int, v0=None, orthogonalize_step: bool = T
     if v0 is None:
         v0 = vinit()
 
-    v0, _ = tf.linalg.normalize(v0)
+    v0, _ = tf.linalg.normalize(v0, axis=-1)
     dtype = v0.dtype
 
     v_shape = v0.shape
