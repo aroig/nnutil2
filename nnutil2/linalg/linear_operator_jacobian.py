@@ -72,7 +72,7 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
         else:
             num_vectors = v.shape[-1]
 
-        if adjoint:
+        if adjoint or self.is_self_adjoint:
             out_size = self._inner_in_size
             with tf.GradientTape() as tape:
                 tape.watch(x_flat)
@@ -83,12 +83,12 @@ class LinearOperatorJacobian(tf.linalg.LinearOperator):
             y_x_flat = tape.batch_jacobian(y_flat, x_flat, experimental_use_pfor=self._use_pfor)
             res = tf.linalg.matrix_transpose(y_x_flat)
 
+        # TODO: this case seems to be much more memory-expensive. It should not.
         else:
             out_size = self._inner_out_size
 
+            s = tf.zeros(shape=(self._batch_size, num_vectors), dtype=v.dtype)
             with tf.GradientTape() as tape:
-                s = tf.zeros(shape=(self._batch_size, num_vectors), dtype=v.dtype)
-                tape.watch(x_flat)
                 tape.watch(s)
 
                 vs_flat = tf.linalg.matvec(v_flat, s, adjoint_a=adjoint_arg)
