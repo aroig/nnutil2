@@ -43,6 +43,7 @@ def symmetric_lanczos(f, vinit, size: int, v0=None, orthogonalize_step: bool = T
     v_shape = v0.shape
     N = v_shape[-1]
     batch_shape = v_shape[:-1]
+    epsilon = 1e-6
 
     assert size >= 2
     alpha_shape = batch_shape + (size,)
@@ -85,8 +86,10 @@ def symmetric_lanczos(f, vinit, size: int, v0=None, orthogonalize_step: bool = T
 
     def lanczos_body(i, alpha, beta, V, w, v):
         v_ip1, beta_ip1 = tf.linalg.normalize(w, axis=-1)
+        v_ip1_new, _ = tf.linalg.normalize(vinit(), axis=-1)
 
-        # TODO: handle case where beta_new is < epsilon by creating a new initial condition
+        mask = tf.broadcast_to(beta_ip1 > epsilon, shape=v_ip1.shape)
+        v_ip1 = tf.where(mask, v_ip1, v_ip1_new)
 
         if orthogonalize_step:
             v_ip1 = orthogonalize(v_ip1, V)
