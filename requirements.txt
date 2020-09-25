@@ -1,7 +1,7 @@
 coverage
 flake8
 tensorboard==2.2
-tensorflow==2.2
+tensorflow==2.2.1
 tensorflow-probability
 numpy
 pandas
